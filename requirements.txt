@@ -5,10 +5,8 @@ flask-cors==4.0.0
 # Azure OpenAI integration
 openai==0.28.1
 
-# Database integration - Stable versions
-supabase==1.0.4
-postgrest==0.10.6
-httpx==0.24.1
+# Database integration - Let pip resolve compatibility
+supabase
 
 # Additional utilities
 python-dotenv==1.0.0

@@ -75,56 +75,70 @@ class BeforestBrandVoice:
                 self.supabase = None
                 return
             
-            # Initialize Supabase client with proper method
-            try:
-                # Import and create client
-                from supabase import create_client
-                self.supabase = create_client(self.supabase_url, self.supabase_key)
-                
-                # Test the connection
-                test = self.supabase.table('beforest_transformations').select("id").limit(1).execute()
-                logger.info("Supabase client configured and tested successfully")
-                
-            except Exception as e:
-                logger.error(f"Supabase initialization failed: {str(e)}")
-                logger.info("Attempting to diagnose issue...")
-                
-                # Try to identify the specific issue
-                if "proxy" in str(e):
-                    logger.info("Proxy parameter issue detected - trying multiple initialization methods")
-                    
-                    # Method 1: Try with minimal options
-                    try:
-                        from supabase.client import Client
-                        self.supabase = Client(self.supabase_url, self.supabase_key)
-                        logger.info("Supabase client initialized with minimal options")
-                    except Exception as e2:
-                        logger.debug(f"Method 1 failed: {e2}")
-                        
-                        # Method 2: Try with basic create_client
+            # Initialize Supabase client with multiple fallback methods
+            self.supabase = None
+            initialization_methods = [
+                self._init_supabase_method_1,
+                self._init_supabase_method_2, 
+                self._init_supabase_method_3,
+                self._init_minimal_client
+            ]
+            
+            for i, method in enumerate(initialization_methods, 1):
+                try:
+                    self.supabase = method()
+                    if self.supabase:
+                        logger.info(f"Supabase initialized successfully with method {i}")
+                        # Test connection
                         try:
-                            import supabase as sb
-                            self.supabase = sb.create_client(self.supabase_url, self.supabase_key)
-                            logger.info("Supabase client initialized with basic create_client")
-                        except Exception as e3:
-                            logger.debug(f"Method 2 failed: {e3}")
-                            
-                            # Method 3: Create minimal working client
-                            try:
-                                self.supabase = self.create_minimal_supabase_client()
-                                logger.info("Created minimal Supabase client")
-                            except:
-                                self.supabase = None
-                                logger.warning("All Supabase initialization methods failed - analytics disabled")
-                else:
-                    self.supabase = None
-                    logger.warning(f"Supabase initialization failed: {str(e)}")
+                            test = self.supabase.table('beforest_transformations').select("id").limit(1).execute()
+                            logger.info("Supabase connection tested successfully")
+                            break
+                        except:
+                            logger.debug(f"Method {i} client created but connection test failed")
+                            continue
+                except Exception as e:
+                    logger.debug(f"Supabase initialization method {i} failed: {str(e)}")
+                    continue
+            
+            if not self.supabase:
+                logger.warning("All Supabase initialization methods failed - analytics will be disabled")
             
         except Exception as e:
             logger.error(f"Failed to setup Supabase: {str(e)}")
             self.supabase = None
 
-    def create_minimal_supabase_client(self):
+    def _init_supabase_method_1(self):
+        """Standard Supabase initialization"""
+        try:
+            return create_client(self.supabase_url, self.supabase_key)
+        except Exception as e:
+            logger.debug(f"Method 1 failed: {str(e)}")
+            return None
+    
+    def _init_supabase_method_2(self):
+        """Supabase initialization with options"""
+        try:
+            from supabase import Client, ClientOptions
+            options = ClientOptions(
+                auto_refresh_token=False,
+                persist_session=False
+            )
+            return Client(self.supabase_url, self.supabase_key, options)
+        except Exception as e:
+            logger.debug(f"Method 2 failed: {str(e)}")
+            return None
+    
+    def _init_supabase_method_3(self):
+        """Basic client without options"""
+        try:
+            from supabase import Client
+            return Client(self.supabase_url, self.supabase_key)
+        except Exception as e:
+            logger.debug(f"Method 3 failed: {str(e)}")
+            return None
+
+    def _init_minimal_client(self):
         """Create a minimal Supabase client as fallback"""
         try:
             # Try to create a basic client with minimal configuration
