@@ -19,8 +19,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application files
 COPY . .
 
+# Make start script executable
+RUN chmod +x start.sh
+
 # Expose port (Railway will override this)
 EXPOSE 8080
 
-# Start command
-CMD gunicorn -w 4 -b 0.0.0.0:$PORT --timeout 120 --log-level info app:app
+# Use shell script to handle PORT variable
+CMD ["sh", "-c", "./start.sh"]
