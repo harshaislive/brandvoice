@@ -120,6 +120,7 @@ class TransformationHistory {
                         <div class="card-date">${date}</div>
                         <div class="card-type">${contentTypeDisplay}</div>
                         <div class="card-audience">For ${audienceDisplay}</div>
+                        ${transformation.user_email ? `<div class="card-creator">By: ${this.escapeHtml(transformation.user_email)}</div>` : ''}
                     </div>
                 </div>
                 
@@ -249,10 +250,11 @@ class TransformationHistory {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-4);">
                     <div>
                         <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: var(--space-1);">${date}</div>
-                        <div style="display: flex; gap: var(--space-3); align-items: center;">
+                        <div style="display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-1);">
                             <span class="card-type">${contentTypeDisplay}</span>
                             <span style="color: var(--text-secondary);">for ${audienceDisplay}</span>
                         </div>
+                        ${transformation.user_email ? `<div style="font-size: 0.8rem; color: var(--text-tertiary);">Created by: ${this.escapeHtml(transformation.user_email)}</div>` : ''}
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 0.875rem; color: var(--text-secondary);">Length Change</div>

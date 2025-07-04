@@ -16,6 +16,7 @@ class BrandVoiceTransformer {
         this.originalContentTextarea = document.getElementById('original-content');
         this.contentTypeSelect = document.getElementById('content-type');
         this.targetAudienceSelect = document.getElementById('target-audience');
+        this.userEmailInput = document.getElementById('user-email');
         this.additionalContextInput = document.getElementById('additional-context');
         
         // Buttons
@@ -76,6 +77,7 @@ class BrandVoiceTransformer {
         this.originalContentTextarea.addEventListener('input', () => this.validateForm());
         this.contentTypeSelect.addEventListener('change', () => this.validateForm());
         this.targetAudienceSelect.addEventListener('change', () => this.validateForm());
+        this.userEmailInput.addEventListener('input', () => this.validateForm());
         
         // Auto-resize textarea
         this.originalContentTextarea.addEventListener('input', this.autoResizeTextarea.bind(this));
@@ -152,9 +154,14 @@ class BrandVoiceTransformer {
     }
 
     isFormValid() {
+        const emailValue = this.userEmailInput.value.trim();
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
         return this.originalContentTextarea.value.trim() !== '' &&
                this.contentTypeSelect.value !== '' &&
-               this.targetAudienceSelect.value !== '';
+               this.targetAudienceSelect.value !== '' &&
+               emailValue !== '' &&
+               emailPattern.test(emailValue);
     }
 
     updateFormState(isValid) {
@@ -182,6 +189,7 @@ class BrandVoiceTransformer {
                 original_content: this.originalContentTextarea.value.trim(),
                 content_type: this.contentTypeSelect.value,
                 target_audience: this.targetAudienceSelect.value,
+                user_email: this.userEmailInput.value.trim(),
                 additional_context: this.additionalContextInput.value.trim()
             };
 
@@ -396,6 +404,7 @@ class BrandVoiceTransformer {
         this.originalContentTextarea.value = '';
         this.contentTypeSelect.value = '';
         this.targetAudienceSelect.value = '';
+        this.userEmailInput.value = '';
         this.additionalContextInput.value = '';
         
         // Reset output

@@ -397,6 +397,7 @@ Keep each point concise (under 50 words). Focus only on the most significant cha
                           additional_context: str,
                           justification: dict,
                           processing_time_ms: int,
+                          user_email: str = None,
                           user_ip: str = None,
                           user_agent: str = None,
                           session_id: str = None) -> bool:
@@ -425,6 +426,7 @@ Keep each point concise (under 50 words). Focus only on the most significant cha
                 'justification': justification,
                 'processing_time_ms': processing_time_ms,
                 'api_model_used': self.deployment_name,
+                'user_email': user_email,
                 'user_ip': user_ip,
                 'user_agent': user_agent,
                 'session_id': session_id or str(uuid.uuid4())
@@ -548,6 +550,7 @@ def transform_content():
         user_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
         user_agent = request.headers.get('User-Agent', '')
         session_id = request.headers.get('X-Session-ID') or data.get('session_id')
+        user_email = data.get('user_email', '').strip()
         
         # Save transformation to Supabase for analytics
         saved = brand_voice.save_transformation(
@@ -558,6 +561,7 @@ def transform_content():
             additional_context=additional_context,
             justification=justification,
             processing_time_ms=processing_time_ms,
+            user_email=user_email,
             user_ip=user_ip,
             user_agent=user_agent,
             session_id=session_id
@@ -658,7 +662,7 @@ def get_transformations():
         # Get transformations with pagination
         result = brand_voice.supabase.table('beforest_transformations').select(
             'id, created_at, content_type, target_audience, original_content, transformed_content, '
-            'original_length, transformed_length, length_change_percent, justification, processing_time_ms, api_model_used'
+            'original_length, transformed_length, length_change_percent, justification, processing_time_ms, api_model_used, user_email'
         ).order('created_at', desc=True).range(offset, offset + per_page - 1).execute()
         
         transformations = result.data if result.data else []
