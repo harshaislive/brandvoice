@@ -7,6 +7,7 @@ class BrandVoiceTransformer {
         this.setupKeyboardShortcuts();
         this.apiEndpoint = '/transform';
         this.isTransforming = false;
+        this.sessionId = this.generateSessionId();
     }
 
     initializeElements() {
@@ -226,12 +227,19 @@ class BrandVoiceTransformer {
     }
 
     async callTransformAPI(data) {
+        // Add session ID to the request
+        const requestData = {
+            ...data,
+            session_id: this.sessionId
+        };
+
         const response = await fetch(this.apiEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Session-ID': this.sessionId
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(requestData)
         });
 
         if (!response.ok) {
@@ -523,6 +531,11 @@ class BrandVoiceTransformer {
     }
 
     // Utility methods
+    generateSessionId() {
+        // Generate a unique session ID for analytics tracking
+        return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
     getFormData() {
         return {
             original_content: this.originalContentTextarea.value.trim(),

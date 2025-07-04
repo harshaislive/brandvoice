@@ -6,6 +6,8 @@ A sophisticated brand voice transformation service using Azure OpenAI
 
 import os
 import logging
+import uuid
+import time
 from typing import Dict, Any, Optional
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
@@ -13,6 +15,7 @@ import openai
 from datetime import datetime
 import json
 from dotenv import load_dotenv
+from supabase import create_client, Client
 
 # Load environment variables from .env file
 load_dotenv()
@@ -32,6 +35,7 @@ class BeforestBrandVoice:
     
     def __init__(self):
         self.setup_azure_openai()
+        self.setup_supabase()
         self.brand_voice_prompt = self.create_brand_voice_prompt()
     
     def setup_azure_openai(self):
@@ -58,6 +62,27 @@ class BeforestBrandVoice:
             
         except Exception as e:
             logger.error(f"Failed to setup Azure OpenAI: {str(e)}")
+    
+    def setup_supabase(self):
+        """Configure Supabase client"""
+        try:
+            self.supabase_url = os.getenv('SUPABASE_URL')
+            self.supabase_key = os.getenv('SUPABASE_SERVICE_KEY')
+            
+            if not self.supabase_url or not self.supabase_key:
+                logger.warning("Supabase credentials not found in environment variables")
+                logger.info("Analytics tracking will be disabled")
+                self.supabase = None
+                return
+            
+            # Initialize Supabase client
+            self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
+            
+            logger.info("Supabase client configured successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to setup Supabase: {str(e)}")
+            self.supabase = None
     
     def create_brand_voice_prompt(self) -> str:
         """Create the comprehensive brand voice system prompt"""
@@ -251,6 +276,80 @@ Keep each point concise (under 50 words). Focus only on the most significant cha
                 "overall_strategy": "Transformed to match Beforest's authentic, data-driven brand voice"
             }
 
+    def save_transformation(self, 
+                          original_content: str,
+                          transformed_content: str,
+                          content_type: str,
+                          target_audience: str,
+                          additional_context: str,
+                          justification: dict,
+                          processing_time_ms: int,
+                          user_ip: str = None,
+                          user_agent: str = None,
+                          session_id: str = None) -> bool:
+        """Save transformation data to Supabase for analytics"""
+        
+        if not self.supabase:
+            logger.debug("Supabase not configured, skipping analytics tracking")
+            return False
+        
+        try:
+            # Calculate metrics
+            original_length = len(original_content)
+            transformed_length = len(transformed_content)
+            length_change_percent = ((transformed_length - original_length) / original_length * 100) if original_length > 0 else 0
+            
+            # Prepare data for insertion
+            transformation_data = {
+                'original_content': original_content,
+                'transformed_content': transformed_content,
+                'content_type': content_type,
+                'target_audience': target_audience,
+                'additional_context': additional_context or '',
+                'original_length': original_length,
+                'transformed_length': transformed_length,
+                'length_change_percent': round(length_change_percent, 2),
+                'justification': justification,
+                'processing_time_ms': processing_time_ms,
+                'api_model_used': self.deployment_name,
+                'user_ip': user_ip,
+                'user_agent': user_agent,
+                'session_id': session_id or str(uuid.uuid4())
+            }
+            
+            # Insert into Supabase
+            result = self.supabase.table('beforest_transformations').insert(transformation_data).execute()
+            
+            if result.data:
+                logger.info(f"Transformation saved successfully with ID: {result.data[0].get('id', 'unknown')}")
+                return True
+            else:
+                logger.warning("Failed to save transformation - no data returned")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Failed to save transformation to Supabase: {str(e)}")
+            return False
+
+    def get_usage_stats(self, days_back: int = 7) -> Dict[str, Any]:
+        """Get usage statistics from Supabase"""
+        
+        if not self.supabase:
+            return {"error": "Supabase not configured"}
+        
+        try:
+            # Call the stored function for usage stats
+            result = self.supabase.rpc('get_beforest_usage_stats', {'days_back': days_back}).execute()
+            
+            if result.data:
+                return result.data[0]
+            else:
+                return {"error": "No data returned"}
+                
+        except Exception as e:
+            logger.error(f"Failed to get usage stats from Supabase: {str(e)}")
+            return {"error": str(e)}
+
 # Initialize the brand voice engine
 brand_voice = BeforestBrandVoice()
 
@@ -310,6 +409,9 @@ def transform_content():
                 'error': 'Azure OpenAI is not configured. Please check your environment variables.'
             }), 500
         
+        # Track processing time
+        start_time = time.time()
+        
         # Transform content
         transformed_content = brand_voice.transform_content(
             original_content=original_content,
@@ -326,8 +428,30 @@ def transform_content():
             target_audience=target_audience
         )
         
+        # Calculate processing time
+        processing_time_ms = int((time.time() - start_time) * 1000)
+        
+        # Get client information for analytics
+        user_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        user_agent = request.headers.get('User-Agent', '')
+        session_id = request.headers.get('X-Session-ID') or data.get('session_id')
+        
+        # Save transformation to Supabase for analytics
+        saved = brand_voice.save_transformation(
+            original_content=original_content,
+            transformed_content=transformed_content,
+            content_type=content_type,
+            target_audience=target_audience,
+            additional_context=additional_context,
+            justification=justification,
+            processing_time_ms=processing_time_ms,
+            user_ip=user_ip,
+            user_agent=user_agent,
+            session_id=session_id
+        )
+        
         # Log transformation for monitoring
-        logger.info(f"Transformation completed - Type: {content_type}, Audience: {target_audience}")
+        logger.info(f"Transformation completed - Type: {content_type}, Audience: {target_audience}, Saved: {saved}")
         
         return jsonify({
             'success': True,
@@ -338,7 +462,9 @@ def transform_content():
                 'content_type': content_type,
                 'target_audience': target_audience,
                 'original_length': len(original_content),
-                'transformed_length': len(transformed_content)
+                'transformed_length': len(transformed_content),
+                'processing_time_ms': processing_time_ms,
+                'saved_to_analytics': saved
             }
         })
         
@@ -358,6 +484,34 @@ def health_check():
         'azure_configured': bool(brand_voice.azure_endpoint and brand_voice.azure_key)
     })
 
+@app.route('/analytics', methods=['GET'])
+def analytics():
+    """Usage analytics endpoint"""
+    try:
+        days_back = int(request.args.get('days', 7))
+        days_back = min(days_back, 90)  # Limit to 90 days max
+        
+        stats = brand_voice.get_usage_stats(days_back)
+        
+        if 'error' in stats:
+            return jsonify({
+                'success': False,
+                'error': stats['error']
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'period_days': days_back,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Analytics error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve analytics data'
+        }), 500
+
 @app.route('/api/info', methods=['GET'])
 def api_info():
     """API information endpoint"""
@@ -368,17 +522,20 @@ def api_info():
         'endpoints': {
             '/': 'Main application interface',
             '/transform': 'POST - Transform content',
+            '/analytics': 'GET - Usage analytics (query param: days=7)',
             '/health': 'GET - Health check',
             '/api/info': 'GET - API information'
         },
         'supported_content_types': [
             'email', 'social-media', 'proposal', 'presentation',
-            'website-copy', 'marketing-material', 'internal-communication', 'press-release'
+            'website-copy', 'marketing-material', 'internal-communication', 'press-release',
+            'report', 'blog-post'
         ],
         'supported_audiences': [
             'existing-clients', 'prospects', 'internal-team', 'partners',
-            'media', 'general-public', 'investors', 'vendors'
-        ]
+            'media', 'general-public', 'investors', 'vendors', 'researchers', 'regulators'
+        ],
+        'analytics_enabled': brand_voice.supabase is not None
     })
 
 @app.errorhandler(404)
