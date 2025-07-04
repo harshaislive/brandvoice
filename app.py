@@ -625,6 +625,69 @@ def analytics():
             'error': 'Failed to retrieve analytics data'
         }), 500
 
+@app.route('/history')
+def history_page():
+    """Serve the transformations history page"""
+    return send_from_directory('.', 'history.html')
+
+@app.route('/api/transformations', methods=['GET'])
+def get_transformations():
+    """API endpoint for fetching transformation history with pagination"""
+    try:
+        # Get pagination parameters
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 6))
+        per_page = min(per_page, 50)  # Limit to 50 max per page
+        
+        # Calculate offset
+        offset = (page - 1) * per_page
+        
+        if not brand_voice.supabase:
+            return jsonify({
+                'success': False,
+                'error': 'Database not configured'
+            }), 500
+        
+        # Get total count
+        try:
+            count_result = brand_voice.supabase.table('beforest_transformations').select('id', count='exact').execute()
+            total_count = count_result.count if hasattr(count_result, 'count') else 0
+        except:
+            total_count = 0
+        
+        # Get transformations with pagination
+        result = brand_voice.supabase.table('beforest_transformations').select(
+            'id, created_at, content_type, target_audience, original_content, transformed_content, '
+            'original_length, transformed_length, length_change_percent, justification, processing_time_ms, api_model_used'
+        ).order('created_at', desc=True).range(offset, offset + per_page - 1).execute()
+        
+        transformations = result.data if result.data else []
+        
+        # Calculate pagination info
+        total_pages = (total_count + per_page - 1) // per_page
+        has_next = page < total_pages
+        has_prev = page > 1
+        
+        return jsonify({
+            'success': True,
+            'transformations': transformations,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total_count': total_count,
+                'total_pages': total_pages,
+                'has_next': has_next,
+                'has_prev': has_prev
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching transformations: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to fetch transformation history'
+        }), 500
+
 @app.route('/api/info', methods=['GET'])
 def api_info():
     """API information endpoint"""
