@@ -75,10 +75,22 @@ class BeforestBrandVoice:
                 self.supabase = None
                 return
             
-            # Initialize Supabase client
-            self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
-            
-            logger.info("Supabase client configured successfully")
+            # Initialize Supabase client with error handling
+            try:
+                self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
+                logger.info("Supabase client configured successfully")
+            except TypeError as te:
+                # Handle version compatibility issues
+                logger.warning(f"Supabase client initialization issue: {str(te)}")
+                logger.info("Attempting alternative initialization...")
+                try:
+                    # Try without any extra parameters
+                    from supabase import Client as SupabaseClient
+                    self.supabase = SupabaseClient(self.supabase_url, self.supabase_key)
+                    logger.info("Supabase client configured with alternative method")
+                except Exception as e2:
+                    logger.error(f"Alternative Supabase initialization also failed: {str(e2)}")
+                    self.supabase = None
             
         except Exception as e:
             logger.error(f"Failed to setup Supabase: {str(e)}")
@@ -563,8 +575,19 @@ if __name__ == '__main__':
         logger.warning("Please set the following environment variables:")
         logger.warning("- AZURE_OPENAI_ENDPOINT")
         logger.warning("- AZURE_OPENAI_KEY")
-        logger.warning("- AZURE_OPENAI_DEPLOYMENT (optional, defaults to 'gpt-4')")
+        logger.warning("- AZURE_OPENAI_DEPLOYMENT (optional, defaults to 'o3-mini')")
     else:
         logger.info("✅ Azure OpenAI configured successfully")
     
-    app.run(host='0.0.0.0', port=port, debug=debug)
+    # Check Supabase configuration
+    if not brand_voice.supabase:
+        logger.warning("⚠️  Supabase not configured - analytics disabled")
+        logger.info("To enable analytics, set SUPABASE_URL and SUPABASE_SERVICE_KEY")
+    else:
+        logger.info("✅ Supabase configured successfully")
+    
+    # Only run the development server if not being run by gunicorn
+    if os.environ.get('SERVER_SOFTWARE', '').startswith('gunicorn'):
+        logger.info("Running under Gunicorn")
+    else:
+        app.run(host='0.0.0.0', port=port, debug=debug)
