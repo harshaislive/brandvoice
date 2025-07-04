@@ -75,26 +75,113 @@ class BeforestBrandVoice:
                 self.supabase = None
                 return
             
-            # Initialize Supabase client with error handling
+            # Initialize Supabase client with proper method
             try:
-                self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
-                logger.info("Supabase client configured successfully")
-            except TypeError as te:
-                # Handle version compatibility issues
-                logger.warning(f"Supabase client initialization issue: {str(te)}")
-                logger.info("Attempting alternative initialization...")
-                try:
-                    # Try without any extra parameters
-                    from supabase import Client as SupabaseClient
-                    self.supabase = SupabaseClient(self.supabase_url, self.supabase_key)
-                    logger.info("Supabase client configured with alternative method")
-                except Exception as e2:
-                    logger.error(f"Alternative Supabase initialization also failed: {str(e2)}")
+                # Import and create client
+                from supabase import create_client
+                self.supabase = create_client(self.supabase_url, self.supabase_key)
+                
+                # Test the connection
+                test = self.supabase.table('beforest_transformations').select("id").limit(1).execute()
+                logger.info("Supabase client configured and tested successfully")
+                
+            except Exception as e:
+                logger.error(f"Supabase initialization failed: {str(e)}")
+                logger.info("Attempting to diagnose issue...")
+                
+                # Try to identify the specific issue
+                if "proxy" in str(e):
+                    logger.info("Proxy parameter issue detected - trying multiple initialization methods")
+                    
+                    # Method 1: Try with minimal options
+                    try:
+                        from supabase.client import Client
+                        self.supabase = Client(self.supabase_url, self.supabase_key)
+                        logger.info("Supabase client initialized with minimal options")
+                    except Exception as e2:
+                        logger.debug(f"Method 1 failed: {e2}")
+                        
+                        # Method 2: Try with basic create_client
+                        try:
+                            import supabase as sb
+                            self.supabase = sb.create_client(self.supabase_url, self.supabase_key)
+                            logger.info("Supabase client initialized with basic create_client")
+                        except Exception as e3:
+                            logger.debug(f"Method 2 failed: {e3}")
+                            
+                            # Method 3: Create minimal working client
+                            try:
+                                self.supabase = self.create_minimal_supabase_client()
+                                logger.info("Created minimal Supabase client")
+                            except:
+                                self.supabase = None
+                                logger.warning("All Supabase initialization methods failed - analytics disabled")
+                else:
                     self.supabase = None
+                    logger.warning(f"Supabase initialization failed: {str(e)}")
             
         except Exception as e:
             logger.error(f"Failed to setup Supabase: {str(e)}")
             self.supabase = None
+
+    def create_minimal_supabase_client(self):
+        """Create a minimal Supabase client as fallback"""
+        try:
+            # Try to create a basic client with minimal configuration
+            import requests
+            
+            class MinimalSupabaseClient:
+                def __init__(self, url, key):
+                    self.url = url.rstrip('/')
+                    self.key = key
+                    self.headers = {
+                        'apikey': self.key,
+                        'Authorization': f'Bearer {self.key}',
+                        'Content-Type': 'application/json'
+                    }
+                
+                def table(self, table_name):
+                    return MinimalTable(self.url, table_name, self.headers)
+                
+                def rpc(self, function_name, params=None):
+                    url = f"{self.url}/rest/v1/rpc/{function_name}"
+                    response = requests.post(url, json=params or {}, headers=self.headers)
+                    return MinimalResponse(response.json() if response.status_code == 200 else [])
+            
+            class MinimalTable:
+                def __init__(self, base_url, table_name, headers):
+                    self.url = f"{base_url}/rest/v1/{table_name}"
+                    self.headers = headers
+                
+                def insert(self, data):
+                    response = requests.post(self.url, json=data, headers=self.headers)
+                    return MinimalResponse(response.json() if response.status_code == 201 else None)
+                
+                def select(self, columns="*"):
+                    response = requests.get(f"{self.url}?select={columns}", headers=self.headers)
+                    return MinimalQuery(self.url, self.headers)
+            
+            class MinimalQuery:
+                def __init__(self, url, headers):
+                    self.url = url
+                    self.headers = headers
+                
+                def limit(self, count):
+                    return self
+                
+                def execute(self):
+                    response = requests.get(f"{self.url}?select=id&limit=1", headers=self.headers)
+                    return MinimalResponse(response.json() if response.status_code == 200 else [])
+            
+            class MinimalResponse:
+                def __init__(self, data):
+                    self.data = data if isinstance(data, list) else [data] if data else []
+            
+            return MinimalSupabaseClient(self.supabase_url, self.supabase_key)
+            
+        except Exception as e:
+            logger.error(f"Failed to create minimal Supabase client: {str(e)}")
+            return None
     
     def create_brand_voice_prompt(self) -> str:
         """Create the comprehensive brand voice system prompt"""
