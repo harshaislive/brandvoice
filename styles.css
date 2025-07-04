@@ -1064,6 +1064,27 @@ body {
 }
 
 @media (max-width: 768px) {
+    /* Ensure proper text visibility on mobile */
+    body {
+        background: var(--off-white);
+        color: var(--dark-earth);
+    }
+    
+    /* Enhanced text contrast for mobile */
+    .form-label {
+        color: var(--dark-earth);
+        font-weight: 600;
+    }
+    
+    .form-input,
+    .form-select,
+    .form-textarea {
+        background: white;
+        color: var(--dark-earth);
+        border-color: var(--charcoal-gray);
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
     .form-row {
         grid-template-columns: 1fr;
         gap: var(--space-4);
@@ -1128,6 +1149,30 @@ body {
         grid-template-columns: 1fr;
         gap: var(--space-6);
     }
+    
+    /* Better mobile readability */
+    .card {
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--charcoal-gray);
+    }
+    
+    .placeholder {
+        color: var(--charcoal-gray);
+        font-size: 1rem;
+    }
+    
+    /* Ensure buttons are visible */
+    .btn-primary {
+        background: var(--forest-green);
+        color: white;
+        font-weight: 600;
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: var(--dark-earth);
+        border-color: var(--charcoal-gray);
+    }
 }
 
 @media (max-width: 480px) {
@@ -1175,7 +1220,8 @@ body {
     }
 }
 
-/* Dark mode support (for future enhancement) */
+/* Dark mode support - DISABLED until fully implemented */
+/* Uncomment when ready to implement full dark mode
 @media (prefers-color-scheme: dark) {
     :root {
         --surface-primary: #1a1a1a;
@@ -1188,3 +1234,4 @@ body {
         --border-medium: #525252;
     }
 }
+*/
