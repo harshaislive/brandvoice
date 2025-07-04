@@ -22,8 +22,12 @@ COPY . .
 # Make start script executable
 RUN chmod +x start.sh
 
-# Expose port (Railway will override this)
+# Set environment variable for port
+ENV PORT=8080
+
+# Expose port
 EXPOSE 8080
 
-# Use shell script to handle PORT variable
-CMD ["sh", "-c", "./start.sh"]
+# Use shell to properly expand environment variables
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["./start.sh"]

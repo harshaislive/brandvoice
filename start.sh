@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 # Startup script for Railway deployment
 
-# Set default port if not provided
-PORT=${PORT:-8080}
+# Get port from environment or use default
+if [ -z "$PORT" ]; then
+    PORT=8080
+fi
 
 echo "Starting Beforest Brand Voice Transformer on port $PORT"
 
