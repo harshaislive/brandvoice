@@ -707,7 +707,7 @@ def api_info():
             '/api/info': 'GET - API information'
         },
         'supported_content_types': [
-            'email', 'social-media', 'proposal', 'presentation',
+            'email', 'social-media', 'whatsapp', 'proposal', 'presentation',
             'website-copy', 'marketing-material', 'internal-communication', 'press-release',
             'report', 'blog-post'
         ],

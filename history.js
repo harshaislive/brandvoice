@@ -164,7 +164,7 @@ class TransformationHistory {
         // Previous button
         paginationHTML += `
             <button class="pagination-btn ${!pagination.has_prev ? 'disabled' : ''}" 
-                    onclick="history.goToPage(${pagination.page - 1})"
+                    onclick="transformationHistory.goToPage(${pagination.page - 1})"
                     ${!pagination.has_prev ? 'disabled' : ''}>
                 ← Previous
             </button>
@@ -175,7 +175,7 @@ class TransformationHistory {
         const endPage = Math.min(pagination.total_pages, pagination.page + 2);
         
         if (startPage > 1) {
-            paginationHTML += `<button class="pagination-btn" onclick="history.goToPage(1)">1</button>`;
+            paginationHTML += `<button class="pagination-btn" onclick="transformationHistory.goToPage(1)">1</button>`;
             if (startPage > 2) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
@@ -184,7 +184,7 @@ class TransformationHistory {
         for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
                 <button class="pagination-btn ${i === pagination.page ? 'current' : ''}" 
-                        onclick="history.goToPage(${i})">
+                        onclick="transformationHistory.goToPage(${i})">
                     ${i}
                 </button>
             `;
@@ -194,13 +194,13 @@ class TransformationHistory {
             if (endPage < pagination.total_pages - 1) {
                 paginationHTML += `<span class="pagination-ellipsis">...</span>`;
             }
-            paginationHTML += `<button class="pagination-btn" onclick="history.goToPage(${pagination.total_pages})">${pagination.total_pages}</button>`;
+            paginationHTML += `<button class="pagination-btn" onclick="transformationHistory.goToPage(${pagination.total_pages})">${pagination.total_pages}</button>`;
         }
         
         // Next button
         paginationHTML += `
             <button class="pagination-btn ${!pagination.has_next ? 'disabled' : ''}" 
-                    onclick="history.goToPage(${pagination.page + 1})"
+                    onclick="transformationHistory.goToPage(${pagination.page + 1})"
                     ${!pagination.has_next ? 'disabled' : ''}>
                 Next →
             </button>
@@ -301,7 +301,7 @@ class TransformationHistory {
                             <div style="font-weight: 600; color: var(--text-primary);">${transformation.api_model_used || 'o3-mini'}</div>
                         </div>
                     </div>
-                    <button onclick="history.copyTransformedContent('${transformation.id}')" 
+                    <button onclick="transformationHistory.copyTransformedContent('${transformation.id}')" 
                             style="padding: var(--space-2) var(--space-4); background: var(--rich-red); color: white; border: none; border-radius: var(--radius-md); font-weight: 500; cursor: pointer;">
                         Copy Transformed Content
                     </button>
@@ -396,10 +396,10 @@ class TransformationHistory {
 
 // Global functions for onclick handlers
 function closeModal() {
-    window.history.closeModal();
+    window.transformationHistory.closeModal();
 }
 
 // Initialize the history page
 document.addEventListener('DOMContentLoaded', () => {
-    window.history = new TransformationHistory();
+    window.transformationHistory = new TransformationHistory();
 });

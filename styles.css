@@ -139,20 +139,20 @@ body {
     flex-direction: column;
     max-width: 1400px;
     margin: 0 auto;
-    padding: var(--space-6);
+    padding: var(--space-4);
     position: relative;
 }
 
 /* Header - Enhanced Design */
 .header {
     text-align: center;
-    margin-bottom: var(--space-16);
-    padding: var(--space-12) 0;
+    margin-bottom: var(--space-10);
+    padding: var(--space-8) 0;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-6);
+    gap: var(--space-4);
 }
 
 .header-nav {
@@ -1104,10 +1104,43 @@ body {
         color: var(--dark-earth);
     }
     
+    /* Mobile container optimization */
+    .app-container {
+        padding: var(--space-3);
+    }
+    
+    /* Header mobile optimization */
+    .header {
+        margin-bottom: var(--space-6);
+        padding: var(--space-4) 0;
+        gap: var(--space-3);
+    }
+    
+    .header-nav {
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+    
+    .nav-link {
+        padding: var(--space-3) var(--space-4);
+        font-size: 0.875rem;
+    }
+    
+    /* Logo mobile optimization */
+    .logo-container {
+        gap: var(--space-3);
+        margin-bottom: var(--space-4);
+    }
+    
+    .logo-image {
+        height: 40px;
+    }
+    
     /* Enhanced text contrast for mobile */
     .form-label {
         color: var(--dark-earth);
         font-weight: 600;
+        margin-bottom: var(--space-2);
     }
     
     .form-input,
@@ -1117,77 +1150,106 @@ body {
         color: var(--dark-earth);
         border-color: var(--charcoal-gray);
         font-size: 16px; /* Prevent zoom on iOS */
+        padding: var(--space-3);
+        border-width: 1px;
+        border-radius: var(--radius-md);
+        -webkit-appearance: none; /* Remove iOS styling */
+        -moz-appearance: none; /* Remove Firefox styling */
+        appearance: none;
+    }
+    
+    .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23344736' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right var(--space-3) center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        padding-right: var(--space-8);
+    }
+    
+    .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+        line-height: 1.5;
     }
     
     .form-row {
         grid-template-columns: 1fr;
-        gap: var(--space-4);
+        gap: var(--space-3);
+    }
+    
+    .form-group {
+        margin-bottom: var(--space-4);
     }
     
     .button-group {
         flex-direction: column;
+        gap: var(--space-3);
     }
     
+    .btn {
+        padding: var(--space-3) var(--space-4);
+        font-size: 0.9rem;
+    }
+    
+    /* Output section mobile optimization */
     .output-header {
         flex-direction: column;
         align-items: stretch;
         text-align: center;
-        gap: var(--space-4);
+        gap: var(--space-3);
     }
     
     .output-actions {
         justify-content: center;
+        gap: var(--space-2);
     }
     
     .input-section,
     .output-content,
     .output-header {
-        padding: var(--space-6);
-    }
-    
-    .logo-image {
-        height: 48px;
+        padding: var(--space-4);
     }
     
     .notification {
-        left: var(--space-4);
-        right: var(--space-4);
-        top: var(--space-4);
+        left: var(--space-3);
+        right: var(--space-3);
+        top: var(--space-3);
         min-width: auto;
     }
     
     /* Justification responsive */
     .justification-grid {
         grid-template-columns: 1fr;
-        gap: var(--space-4);
+        gap: var(--space-3);
     }
     
     .justification-content {
-        padding: var(--space-4);
+        padding: var(--space-3);
     }
     
     .justification-header {
-        padding: var(--space-4) var(--space-6);
+        padding: var(--space-3) var(--space-4);
     }
     
     .stats-grid {
         grid-template-columns: 1fr;
-        gap: var(--space-3);
+        gap: var(--space-2);
     }
     
     .transformation-stats {
-        padding: var(--space-4) var(--space-6);
+        padding: var(--space-3) var(--space-4);
     }
     
     .tips-grid {
         grid-template-columns: 1fr;
-        gap: var(--space-6);
+        gap: var(--space-4);
     }
     
     /* Better mobile readability */
     .card {
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--charcoal-gray);
+        margin-bottom: var(--space-4);
     }
     
     .placeholder {
@@ -1207,30 +1269,290 @@ body {
         color: var(--dark-earth);
         border-color: var(--charcoal-gray);
     }
+    
+    /* Modal mobile optimization */
+    .modal-content {
+        width: 95%;
+        max-width: none;
+        max-height: 95vh;
+        margin: var(--space-2);
+    }
+    
+    .modal-header {
+        padding: var(--space-4) var(--space-5);
+    }
+    
+    .modal-title {
+        font-size: 1.1rem;
+    }
+    
+    .modal-close {
+        width: 28px;
+        height: 28px;
+        font-size: 1.2rem;
+    }
+    
+    .modal-body {
+        padding: var(--space-4);
+        max-height: 70vh;
+    }
+    
+    /* History page mobile optimization */
+    .transformations-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .transformation-card {
+        padding: var(--space-4);
+    }
+    
+    .card-header {
+        margin-bottom: var(--space-3);
+    }
+    
+    .card-meta {
+        gap: var(--space-2);
+    }
+    
+    .card-preview {
+        margin-bottom: var(--space-3);
+    }
+    
+    .card-stats {
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+    
+    .stat-group {
+        justify-content: space-between;
+    }
+    
+    .pagination {
+        flex-direction: column;
+        gap: var(--space-3);
+        align-items: center;
+    }
+    
+    .pagination-btn {
+        padding: var(--space-2) var(--space-3);
+        font-size: 0.9rem;
+    }
+    
+    .pagination-info {
+        text-align: center;
+        order: -1;
+    }
 }
 
 @media (max-width: 480px) {
     .app-container {
-        padding: var(--space-3);
+        padding: var(--space-2);
     }
     
+    /* Header for small screens */
+    .header {
+        margin-bottom: var(--space-4);
+        padding: var(--space-3) 0;
+        gap: var(--space-2);
+    }
+    
+    .logo-image {
+        height: 36px;
+    }
+    
+    .brand-title {
+        font-size: 1.5rem;
+    }
+    
+    .brand-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    /* Form improvements for small screens */
     .input-section,
     .output-content,
     .output-header {
-        padding: var(--space-4);
+        padding: var(--space-3);
+    }
+    
+    .form-group {
+        margin-bottom: var(--space-3);
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: var(--space-1);
+    }
+    
+    .form-input,
+    .form-select,
+    .form-textarea {
+        padding: var(--space-2);
+        font-size: 16px;
+    }
+    
+    .form-textarea {
+        min-height: 120px;
     }
     
     .output-content {
-        min-height: 250px;
+        min-height: 200px;
     }
     
     .card {
-        border-radius: var(--radius-lg);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--space-3);
     }
     
     .btn {
-        padding: var(--space-3) var(--space-5);
+        padding: var(--space-2) var(--space-4);
+        font-size: 0.85rem;
+        min-height: 44px; /* Better touch target */
+    }
+    
+    /* Stats and justification for small screens */
+    .stats-grid {
+        gap: var(--space-1);
+    }
+    
+    .stat-item {
+        padding: var(--space-2);
+    }
+    
+    .transformation-stats {
+        padding: var(--space-2) var(--space-3);
+    }
+    
+    .justification-header {
+        padding: var(--space-2) var(--space-3);
+    }
+    
+    .justification-content {
+        padding: var(--space-2);
+    }
+    
+    /* Tips section for small screens */
+    .tips-grid {
+        gap: var(--space-3);
+    }
+    
+    .tip-card {
+        padding: var(--space-3);
+    }
+    
+    /* Navigation improvements */
+    .nav-link {
+        padding: var(--space-2) var(--space-3);
         font-size: 0.8rem;
+    }
+    
+    /* Notification improvements */
+    .notification {
+        left: var(--space-2);
+        right: var(--space-2);
+        top: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        font-size: 0.85rem;
+    }
+    
+    /* Modal improvements for small screens */
+    .modal-content {
+        width: 98%;
+        max-height: 98vh;
+        margin: var(--space-1);
+        border-radius: var(--radius-lg);
+    }
+    
+    .modal-header {
+        padding: var(--space-3) var(--space-4);
+    }
+    
+    .modal-title {
+        font-size: 1rem;
+    }
+    
+    .modal-close {
+        width: 24px;
+        height: 24px;
+        font-size: 1rem;
+    }
+    
+    .modal-body {
+        padding: var(--space-3);
+        max-height: 75vh;
+    }
+    
+    /* History page improvements for small screens */
+    .history-container {
+        padding: var(--space-3);
+    }
+    
+    .history-header {
+        margin-bottom: var(--space-6);
+    }
+    
+    .history-title {
+        font-size: 1.8rem;
+    }
+    
+    .history-subtitle {
+        font-size: 1rem;
+    }
+    
+    .transformations-grid {
+        gap: var(--space-2);
+    }
+    
+    .transformation-card {
+        padding: var(--space-3);
+    }
+    
+    .card-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+    }
+    
+    .card-date,
+    .card-type,
+    .card-audience,
+    .card-creator {
+        font-size: 0.8rem;
+    }
+    
+    .preview-text {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    .stat-item {
+        padding: var(--space-1);
+    }
+    
+    .stat-value {
+        font-size: 0.9rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+    
+    .pagination-btn {
+        padding: var(--space-2);
+        font-size: 0.8rem;
+        min-width: 40px;
+    }
+    
+    .pagination-info {
+        font-size: 0.8rem;
+        width: 100%;
+        margin-top: var(--space-2);
     }
 }
 
