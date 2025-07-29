@@ -9,13 +9,14 @@ import logging
 import uuid
 import time
 from typing import Dict, Any, Optional
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_from_directory, session
 from flask_cors import CORS
 import openai
 from datetime import datetime
 import json
 from dotenv import load_dotenv
 from supabase import create_client, Client
+import hashlib
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,7 +29,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-here')  # Change this in production
 CORS(app)  # Enable CORS for frontend integration
+
+# Settings storage (in production, use database)
+SETTINGS_FILE = 'settings.json'
+DEFAULT_PASSKEY_HASH = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'  # SHA-256 of '123456'
 
 class BeforestBrandVoice:
     """Brand voice transformation engine for Beforest"""
@@ -36,6 +42,7 @@ class BeforestBrandVoice:
     def __init__(self):
         self.setup_azure_openai()
         self.setup_supabase()
+        self.load_settings()
         self.brand_voice_prompt = self.create_brand_voice_prompt()
     
     def setup_azure_openai(self):
@@ -197,6 +204,82 @@ class BeforestBrandVoice:
             logger.error(f"Failed to create minimal Supabase client: {str(e)}")
             return None
     
+    def load_settings(self):
+        """Load settings from file or use defaults"""
+        try:
+            if os.path.exists(SETTINGS_FILE):
+                with open(SETTINGS_FILE, 'r') as f:
+                    self.settings = json.load(f)
+                    logger.info("Settings loaded from file")
+            else:
+                self.settings = self.get_default_settings()
+                self.save_settings()
+        except Exception as e:
+            logger.error(f"Failed to load settings: {str(e)}")
+            self.settings = self.get_default_settings()
+    
+    def save_settings(self):
+        """Save current settings to file"""
+        try:
+            with open(SETTINGS_FILE, 'w') as f:
+                json.dump(self.settings, f, indent=2)
+            logger.info("Settings saved to file")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to save settings: {str(e)}")
+            return False
+    
+    def get_default_settings(self):
+        """Get default settings structure"""
+        return {
+            'prompts': {
+                'main': self.get_default_main_prompt(),
+                'transform': self.get_default_transform_prompt(),
+                'justification': self.get_default_justification_prompt()
+            },
+            'model': {
+                'deployment': self.deployment_name,
+                'max_tokens': 2000,
+                'temperature': 0.7,
+                'top_p': 0.9,
+                'frequency_penalty': 0,
+                'presence_penalty': 0
+            },
+            'passkey_hash': DEFAULT_PASSKEY_HASH
+        }
+    
+    def get_default_main_prompt(self) -> str:
+        """Get default main brand voice prompt"""
+        return self.create_brand_voice_prompt()
+    
+    def get_default_transform_prompt(self) -> str:
+        """Get default transformation prompt template"""
+        return """Transform the following content for Beforest:
+
+ORIGINAL CONTENT:
+{original_content}
+
+CONTENT TYPE: {content_type}
+TARGET AUDIENCE: {target_audience}
+ADDITIONAL CONTEXT: {additional_context}
+
+Please transform this content to perfectly match Beforest's brand voice while maintaining the original message's intent and key information."""
+    
+    def get_default_justification_prompt(self) -> str:
+        """Get default justification prompt"""
+        return """Analyze the content transformation below and provide a clear justification of what changes were made and why.
+
+ORIGINAL CONTENT:
+{original_content}
+
+TRANSFORMED CONTENT:
+{transformed_content}
+
+CONTENT TYPE: {content_type}
+TARGET AUDIENCE: {target_audience}
+
+Provide a concise analysis in JSON format with: key_changes, brand_voice_improvements, audience_adaptation, and overall_strategy."""
+    
     def create_brand_voice_prompt(self) -> str:
         """Create the comprehensive brand voice system prompt"""
         return """You are the Beforest Brand Voice Transformer, an expert AI assistant specialized in transforming content to match Beforest's exact brand voice and communication style.
@@ -261,26 +344,30 @@ Transform the provided content to strictly follow Beforest's brand voice: calm s
         """Transform content using Azure OpenAI"""
         
         try:
-            # Create user prompt with context
-            user_prompt = f"""Transform the following content for Beforest:
+            # Create user prompt with context using template
+            transform_template = self.settings['prompts'].get('transform', self.get_default_transform_prompt())
+            user_prompt = transform_template.format(
+                original_content=original_content,
+                content_type=content_type,
+                target_audience=target_audience,
+                additional_context=additional_context if additional_context else "None provided"
+            )
 
-ORIGINAL CONTENT:
-{original_content}
-
-CONTENT TYPE: {content_type}
-TARGET AUDIENCE: {target_audience}
-ADDITIONAL CONTEXT: {additional_context if additional_context else "None provided"}
-
-Please transform this content to perfectly match Beforest's brand voice while maintaining the original message's intent and key information. Ensure the output is appropriate for the specified content type and target audience."""
-
-            # Call Azure OpenAI with o3-mini compatible parameters
+            # Get model settings
+            model_settings = self.settings.get('model', {})
+            
+            # Call Azure OpenAI with configured parameters
             response = openai.ChatCompletion.create(
-                engine=self.deployment_name,
+                engine=model_settings.get('deployment', self.deployment_name),
                 messages=[
-                    {"role": "system", "content": self.brand_voice_prompt},
+                    {"role": "system", "content": self.settings['prompts'].get('main', self.brand_voice_prompt)},
                     {"role": "user", "content": user_prompt}
                 ],
-                max_completion_tokens=2000
+                max_completion_tokens=model_settings.get('max_tokens', 2000),
+                temperature=model_settings.get('temperature', 0.7),
+                top_p=model_settings.get('top_p', 0.9),
+                frequency_penalty=model_settings.get('frequency_penalty', 0),
+                presence_penalty=model_settings.get('presence_penalty', 0)
             )
             
             transformed_content = response.choices[0].message.content.strip()
@@ -691,6 +778,139 @@ def get_transformations():
             'success': False,
             'error': 'Failed to fetch transformation history'
         }), 500
+
+@app.route('/settings')
+def settings_page():
+    """Serve the settings page"""
+    return send_from_directory('.', 'settings.html')
+
+@app.route('/api/settings', methods=['GET'])
+def get_settings():
+    """Get current settings (requires authentication)"""
+    # Check authentication
+    auth_header = request.headers.get('X-Settings-Auth')
+    if auth_header != 'true':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    # Return settings without sensitive data
+    safe_settings = {
+        'prompts': brand_voice.settings.get('prompts', {}),
+        'model': brand_voice.settings.get('model', {})
+    }
+    
+    return jsonify({
+        'success': True,
+        'settings': safe_settings
+    })
+
+@app.route('/api/settings/prompts', methods=['POST'])
+def update_prompts():
+    """Update prompt settings (requires authentication)"""
+    # Check authentication
+    auth_header = request.headers.get('X-Settings-Auth')
+    if auth_header != 'true':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        prompts = data.get('prompts', {})
+        
+        # Validate prompts
+        if not prompts.get('main') or not prompts.get('transform'):
+            return jsonify({'success': False, 'error': 'Main and transform prompts are required'}), 400
+        
+        # Update settings
+        brand_voice.settings['prompts'] = prompts
+        
+        # Save to file
+        if brand_voice.save_settings():
+            # Reload brand voice prompt
+            brand_voice.brand_voice_prompt = prompts.get('main', brand_voice.create_brand_voice_prompt())
+            
+            return jsonify({
+                'success': True,
+                'message': 'Prompts updated successfully'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save settings'}), 500
+            
+    except Exception as e:
+        logger.error(f"Failed to update prompts: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/settings/model', methods=['POST'])
+def update_model_settings():
+    """Update model settings (requires authentication)"""
+    # Check authentication
+    auth_header = request.headers.get('X-Settings-Auth')
+    if auth_header != 'true':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        model_settings = data.get('model', {})
+        
+        # Validate model settings
+        if 'deployment' in model_settings and not model_settings['deployment']:
+            return jsonify({'success': False, 'error': 'Deployment name cannot be empty'}), 400
+        
+        # Validate numeric ranges
+        if 'temperature' in model_settings:
+            temp = model_settings['temperature']
+            if temp < 0 or temp > 2:
+                return jsonify({'success': False, 'error': 'Temperature must be between 0 and 2'}), 400
+        
+        if 'top_p' in model_settings:
+            top_p = model_settings['top_p']
+            if top_p < 0 or top_p > 1:
+                return jsonify({'success': False, 'error': 'Top P must be between 0 and 1'}), 400
+        
+        # Update settings
+        brand_voice.settings['model'].update(model_settings)
+        
+        # Save to file
+        if brand_voice.save_settings():
+            return jsonify({
+                'success': True,
+                'message': 'Model settings updated successfully'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save settings'}), 500
+            
+    except Exception as e:
+        logger.error(f"Failed to update model settings: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/settings/passkey', methods=['POST'])
+def update_passkey():
+    """Update the settings passkey (requires authentication)"""
+    # Check authentication
+    auth_header = request.headers.get('X-Settings-Auth')
+    if auth_header != 'true':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        new_passkey_hash = data.get('passkey_hash')
+        
+        if not new_passkey_hash:
+            return jsonify({'success': False, 'error': 'New passkey hash is required'}), 400
+        
+        # Update passkey
+        brand_voice.settings['passkey_hash'] = new_passkey_hash
+        
+        # Save to file
+        if brand_voice.save_settings():
+            return jsonify({
+                'success': True,
+                'message': 'Passkey updated successfully'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save settings'}), 500
+            
+    except Exception as e:
+        logger.error(f"Failed to update passkey: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/info', methods=['GET'])
 def api_info():

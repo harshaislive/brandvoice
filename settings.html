@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Beforest Brand Voice Transformer</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Settings-specific styles */
+        .settings-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .settings-auth {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .settings-content {
+            display: none;
+        }
+
+        .settings-content.authenticated {
+            display: block;
+        }
+
+        .settings-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e5e5e5;
+        }
+
+        .settings-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .settings-tab.active {
+            color: var(--forest-green);
+            border-bottom-color: var(--forest-green);
+        }
+
+        .settings-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        .prompt-editor {
+            margin-bottom: 30px;
+        }
+
+        .prompt-editor textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .prompt-templates {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .template-card {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .template-card:hover {
+            background: #e8e8e8;
+            transform: translateY(-2px);
+        }
+
+        .best-practices {
+            background: #f0f8f0;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .best-practices h3 {
+            color: var(--forest-green);
+            margin-bottom: 10px;
+        }
+
+        .best-practices ul {
+            margin-left: 20px;
+        }
+
+        .model-settings {
+            display: grid;
+            gap: 20px;
+        }
+
+        .setting-group {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .setting-group input,
+        .setting-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .setting-group .description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .save-button {
+            background: var(--forest-green);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-button:hover {
+            background: var(--dark-earth);
+        }
+
+        .prompt-variables {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .prompt-variables h4 {
+            margin-bottom: 10px;
+        }
+
+        .variable-tag {
+            display: inline-block;
+            background: #ffc107;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <!-- Authentication Modal -->
+        <div class="settings-auth" id="authModal">
+            <h2>Settings Access</h2>
+            <p>Enter the passkey to access settings</p>
+            <form id="authForm">
+                <input type="password" id="passkey" placeholder="Enter passkey" required>
+                <button type="submit" class="save-button" style="width: 100%; margin-top: 15px;">Access Settings</button>
+            </form>
+            <p style="margin-top: 20px; text-align: center;">
+                <a href="index.html">← Back to App</a>
+            </p>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="settings-content" id="settingsContent">
+            <header>
+                <h1>Beforest Brand Voice Settings</h1>
+                <p>Configure prompts and model settings for your team</p>
+            </header>
+
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <div class="settings-tab active" data-tab="prompts">Prompts</div>
+                <div class="settings-tab" data-tab="model">Model Settings</div>
+                <div class="settings-tab" data-tab="templates">Templates</div>
+                <div class="settings-tab" data-tab="best-practices">Best Practices</div>
+            </div>
+
+            <!-- Prompts Panel -->
+            <div class="settings-panel active" id="prompts-panel">
+                <h2>System Prompts Configuration</h2>
+                
+                <div class="prompt-variables">
+                    <h4>Available Variables:</h4>
+                    <span class="variable-tag">{content_type}</span>
+                    <span class="variable-tag">{target_audience}</span>
+                    <span class="variable-tag">{additional_context}</span>
+                    <span class="variable-tag">{original_content}</span>
+                </div>
+
+                <div class="prompt-editor">
+                    <h3>Main Brand Voice Prompt</h3>
+                    <textarea id="mainPrompt" placeholder="Enter the main system prompt..."></textarea>
+                </div>
+
+                <div class="prompt-editor">
+                    <h3>Transformation Instructions</h3>
+                    <textarea id="transformPrompt" placeholder="Enter transformation instructions..."></textarea>
+                </div>
+
+                <div class="prompt-editor">
+                    <h3>Justification Analysis Prompt</h3>
+                    <textarea id="justificationPrompt" placeholder="Enter justification analysis prompt..."></textarea>
+                </div>
+
+                <button class="save-button" onclick="savePrompts()">Save Prompts</button>
+            </div>
+
+            <!-- Model Settings Panel -->
+            <div class="settings-panel" id="model-panel">
+                <h2>Azure OpenAI Model Configuration</h2>
+
+                <div class="model-settings">
+                    <div class="setting-group">
+                        <label for="deploymentName">Deployment Name</label>
+                        <input type="text" id="deploymentName" placeholder="e.g., o3-mini">
+                        <p class="description">Azure OpenAI deployment name</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="maxTokens">Max Completion Tokens</label>
+                        <input type="number" id="maxTokens" placeholder="2000" min="100" max="4000">
+                        <p class="description">Maximum tokens for generated content</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="temperature">Temperature</label>
+                        <input type="number" id="temperature" placeholder="0.7" min="0" max="2" step="0.1">
+                        <p class="description">Controls randomness (0=deterministic, 2=very random)</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="topP">Top P</label>
+                        <input type="number" id="topP" placeholder="0.9" min="0" max="1" step="0.1">
+                        <p class="description">Nucleus sampling threshold</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="frequencyPenalty">Frequency Penalty</label>
+                        <input type="number" id="frequencyPenalty" placeholder="0" min="-2" max="2" step="0.1">
+                        <p class="description">Reduce repetition of frequent tokens</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="presencePenalty">Presence Penalty</label>
+                        <input type="number" id="presencePenalty" placeholder="0" min="-2" max="2" step="0.1">
+                        <p class="description">Encourage new topics</p>
+                    </div>
+                </div>
+
+                <button class="save-button" onclick="saveModelSettings()">Save Model Settings</button>
+            </div>
+
+            <!-- Templates Panel -->
+            <div class="settings-panel" id="templates-panel">
+                <h2>Prompt Templates Library</h2>
+                
+                <div class="prompt-templates">
+                    <div class="template-card" onclick="loadTemplate('concise')">
+                        <h4>Concise & Direct</h4>
+                        <p>For brief, impactful communications</p>
+                    </div>
+                    <div class="template-card" onclick="loadTemplate('analytical')">
+                        <h4>Data-Driven</h4>
+                        <p>Emphasize facts and analytics</p>
+                    </div>
+                    <div class="template-card" onclick="loadTemplate('educational')">
+                        <h4>Educational</h4>
+                        <p>Explain complex concepts simply</p>
+                    </div>
+                    <div class="template-card" onclick="loadTemplate('professional')">
+                        <h4>Professional</h4>
+                        <p>Formal business communications</p>
+                    </div>
+                    <div class="template-card" onclick="loadTemplate('authentic')">
+                        <h4>Authentic Voice</h4>
+                        <p>Natural, conversational tone</p>
+                    </div>
+                    <div class="template-card" onclick="loadTemplate('technical')">
+                        <h4>Technical</h4>
+                        <p>For technical documentation</p>
+                    </div>
+                </div>
+
+                <div class="prompt-editor">
+                    <h3>Template Preview</h3>
+                    <textarea id="templatePreview" readonly></textarea>
+                </div>
+
+                <button class="save-button" onclick="applyTemplate()">Apply Template</button>
+            </div>
+
+            <!-- Best Practices Panel -->
+            <div class="settings-panel" id="best-practices-panel">
+                <h2>Prompt Engineering Best Practices</h2>
+
+                <div class="best-practices">
+                    <h3>1. Be Specific and Clear</h3>
+                    <ul>
+                        <li>Use precise language and avoid ambiguity</li>
+                        <li>Define exact requirements and constraints</li>
+                        <li>Specify the desired output format</li>
+                    </ul>
+                </div>
+
+                <div class="best-practices">
+                    <h3>2. Provide Context</h3>
+                    <ul>
+                        <li>Include relevant background information</li>
+                        <li>Define the target audience clearly</li>
+                        <li>Explain the purpose of the content</li>
+                    </ul>
+                </div>
+
+                <div class="best-practices">
+                    <h3>3. Use Examples</h3>
+                    <ul>
+                        <li>Provide good and bad examples</li>
+                        <li>Show before/after transformations</li>
+                        <li>Demonstrate edge cases</li>
+                    </ul>
+                </div>
+
+                <div class="best-practices">
+                    <h3>4. Structure Your Prompts</h3>
+                    <ul>
+                        <li>Use clear sections and headings</li>
+                        <li>Break complex instructions into steps</li>
+                        <li>Use bullet points for lists</li>
+                    </ul>
+                </div>
+
+                <div class="best-practices">
+                    <h3>5. Iterate and Test</h3>
+                    <ul>
+                        <li>Test with various input types</li>
+                        <li>Refine based on outputs</li>
+                        <li>Document what works best</li>
+                    </ul>
+                </div>
+
+                <div class="best-practices">
+                    <h3>Beforest-Specific Guidelines</h3>
+                    <ul>
+                        <li><strong>Calm Self-Assurance:</strong> Instruct to avoid urgency or pressure</li>
+                        <li><strong>No Superlatives:</strong> Explicitly list forbidden words</li>
+                        <li><strong>Data-Driven:</strong> Request evidence-based language</li>
+                        <li><strong>Respect Intelligence:</strong> Avoid oversimplification instructions</li>
+                        <li><strong>Authenticity:</strong> Emphasize natural, honest communication</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Back to App Link -->
+            <div style="margin-top: 40px; text-align: center;">
+                <a href="index.html">← Back to Application</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html>
