@@ -18,8 +18,119 @@
             margin: 100px auto;
             background: white;
             padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .auth-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--forest-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+        }
+
+        .auth-title {
+            font-size: 24px;
+            color: var(--dark-earth);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .auth-description {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .passkey-input {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid #e5e5e5;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .passkey-input:focus {
+            outline: none;
+            border-color: var(--forest-green);
+            box-shadow: 0 0 0 3px rgba(76, 129, 85, 0.1);
+        }
+
+        .auth-button {
+            width: 100%;
+            background: var(--forest-green);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .auth-button:hover {
+            background: var(--dark-earth);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .auth-button:active {
+            transform: translateY(0);
+        }
+
+        .auth-back-link {
+            margin-top: 30px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .auth-back-link:hover {
+            color: var(--forest-green);
+        }
+
+        .auth-error {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .auth-loading {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
 
         .settings-content {
@@ -187,15 +298,26 @@
     <div class="settings-container">
         <!-- Authentication Modal -->
         <div class="settings-auth" id="authModal">
-            <h2>Settings Access</h2>
-            <p>Enter the passkey to access settings</p>
+            <div class="auth-icon">🔐</div>
+            <h2 class="auth-title">Settings Access</h2>
+            <p class="auth-description">Enter your passkey to access brand voice configuration</p>
             <form id="authForm">
-                <input type="password" id="passkey" placeholder="Enter passkey" required>
-                <button type="submit" class="save-button" style="width: 100%; margin-top: 15px;">Access Settings</button>
+                <input 
+                    type="password" 
+                    id="passkey" 
+                    class="passkey-input"
+                    placeholder="••••••" 
+                    required
+                    autocomplete="off"
+                    maxlength="20"
+                >
+                <div class="auth-error" id="authError">Invalid passkey. Please try again.</div>
+                <button type="submit" class="auth-button">
+                    <span id="authButtonText">Unlock Settings</span>
+                    <div class="auth-loading" id="authLoading"></div>
+                </button>
             </form>
-            <p style="margin-top: 20px; text-align: center;">
-                <a href="index.html">← Back to App</a>
-            </p>
+            <a href="index.html" class="auth-back-link">← Back to Application</a>
         </div>
 
         <!-- Settings Content -->

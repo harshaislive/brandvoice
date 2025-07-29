@@ -34,14 +34,52 @@ class SettingsManager {
 
     async authenticate() {
         const passkey = document.getElementById('passkey').value;
+        const authButton = document.querySelector('.auth-button');
+        const authButtonText = document.getElementById('authButtonText');
+        const authLoading = document.getElementById('authLoading');
+        const authError = document.getElementById('authError');
+        const passkeyInput = document.getElementById('passkey');
+
+        // Show loading state
+        authButton.disabled = true;
+        authButtonText.style.display = 'none';
+        authLoading.style.display = 'block';
+        authError.style.display = 'none';
+
+        // Simulate slight delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         const hashedPasskey = await this.hashPasskey(passkey);
 
         if (hashedPasskey === this.PASSKEY_HASH) {
             this.authenticated = true;
             sessionStorage.setItem('settings_authenticated', 'true');
-            this.showSettings();
+            
+            // Success animation
+            authButtonText.textContent = 'Access Granted!';
+            authButtonText.style.display = 'block';
+            authLoading.style.display = 'none';
+            authButton.style.background = '#22c55e';
+            
+            setTimeout(() => {
+                this.showSettings();
+            }, 800);
         } else {
-            alert('Invalid passkey');
+            // Error handling
+            authButton.disabled = false;
+            authButtonText.style.display = 'block';
+            authLoading.style.display = 'none';
+            authError.style.display = 'block';
+            
+            // Shake animation
+            passkeyInput.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                passkeyInput.style.animation = '';
+            }, 500);
+            
+            // Clear input
+            passkeyInput.value = '';
+            passkeyInput.focus();
         }
     }
 
@@ -63,8 +101,24 @@ class SettingsManager {
     }
 
     showSettings() {
-        document.getElementById('authModal').style.display = 'none';
-        document.getElementById('settingsContent').classList.add('authenticated');
+        const authModal = document.getElementById('authModal');
+        const settingsContent = document.getElementById('settingsContent');
+        
+        // Fade out auth modal
+        authModal.style.opacity = '0';
+        authModal.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+            authModal.style.display = 'none';
+            settingsContent.classList.add('authenticated');
+            
+            // Fade in settings content
+            settingsContent.style.opacity = '0';
+            setTimeout(() => {
+                settingsContent.style.transition = 'opacity 0.3s ease';
+                settingsContent.style.opacity = '1';
+            }, 50);
+        }, 300);
     }
 
     switchTab(tabName) {
