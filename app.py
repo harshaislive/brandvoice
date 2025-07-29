@@ -267,7 +267,13 @@ Please transform this content to perfectly match Beforest's brand voice while ma
     
     def get_default_justification_prompt(self) -> str:
         """Get default justification prompt"""
-        return """Analyze the content transformation below and provide a clear justification of what changes were made and why.
+        return """Analyze the content transformation below and provide a clear justification of what changes were made and why, based on Beforest's brand voice guidelines.
+
+BEFOREST BRAND VOICE PRINCIPLES:
+- Calm self-assurance, authenticity, respect for audience intelligence
+- Simple, factual sentences without superlatives or hyperbole
+- Data-driven approach, sound science foundation
+- No drama, teasing, or emotional manipulation
 
 ORIGINAL CONTENT:
 {original_content}
@@ -278,7 +284,23 @@ TRANSFORMED CONTENT:
 CONTENT TYPE: {content_type}
 TARGET AUDIENCE: {target_audience}
 
-Provide a concise analysis in JSON format with: key_changes, brand_voice_improvements, audience_adaptation, and overall_strategy."""
+Please provide a concise analysis in this exact JSON format:
+{{
+    "key_changes": [
+        "Brief description of main change 1",
+        "Brief description of main change 2",
+        "Brief description of main change 3"
+    ],
+    "brand_voice_improvements": [
+        "How change aligns with calm self-assurance",
+        "How change removes superlatives/drama",
+        "How change respects audience intelligence"
+    ],
+    "audience_adaptation": "How the transformation was tailored for the target audience",
+    "overall_strategy": "One sentence explaining the overall transformation approach"
+}}
+
+Keep each point concise (under 50 words). Focus only on the most significant changes."""
     
     def create_brand_voice_prompt(self) -> str:
         """Create the comprehensive brand voice system prompt"""
@@ -387,16 +409,14 @@ Transform the provided content to strictly follow Beforest's brand voice: calm s
         """Generate justification for transformation changes"""
         
         try:
-            justification_prompt = f"""Analyze the content transformation below and provide a clear justification of what changes were made and why, based on Beforest's brand voice guidelines.
-
-BEFOREST BRAND VOICE PRINCIPLES:
-- Calm self-assurance, authenticity, respect for audience intelligence
-- Simple, factual sentences without superlatives or hyperbole
-- Data-driven approach, sound science foundation
-- No drama, teasing, or emotional manipulation
-
-ORIGINAL CONTENT:
-{original_content}
+            # Use justification template from settings
+            justification_template = self.settings['prompts'].get('justification', self.get_default_justification_prompt())
+            justification_prompt = justification_template.format(
+                original_content=original_content,
+                transformed_content=transformed_content,
+                content_type=content_type,
+                target_audience=target_audience
+            )
 
 TRANSFORMED CONTENT:
 {transformed_content}

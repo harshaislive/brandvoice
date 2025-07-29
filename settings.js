@@ -83,11 +83,18 @@ class SettingsManager {
 
     loadCurrentSettings() {
         // Load settings from backend
-        fetch('/api/settings')
+        fetch('/api/settings', {
+            headers: {
+                'X-Settings-Auth': sessionStorage.getItem('settings_authenticated') || 'false'
+            }
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     this.populateSettings(data.settings);
+                } else {
+                    // If unauthorized or error, show defaults
+                    this.populateDefaultSettings();
                 }
             })
             .catch(error => {
