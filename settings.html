@@ -985,6 +985,24 @@
                 </div>
             </div>
 
+            <!-- Settings Management Section -->
+            <div style="margin-top: 40px; padding: 25px; background: #f0f8ff; border-radius: 8px; border: 1px solid #4682b4;">
+                <h3 style="margin-bottom: 15px;">Settings Management</h3>
+                <p style="color: #666; margin-bottom: 20px;">Export your settings to share with team members or import a configuration file</p>
+                
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="save-button" onclick="exportSettings()" style="background: #28a745;">
+                        📥 Export All Settings
+                    </button>
+                    <button class="save-button" onclick="document.getElementById('importFile').click()" style="background: #17a2b8;">
+                        📤 Import Settings
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importSettings(event)">
+                </div>
+                
+                <div id="importStatus" style="margin-top: 15px; display: none; padding: 10px; border-radius: 4px;"></div>
+            </div>
+
             <!-- Back to App Link -->
             <div style="margin-top: 40px; text-align: center;">
                 <a href="index.html">← Back to Application</a>

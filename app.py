@@ -205,8 +205,22 @@ class BeforestBrandVoice:
             return None
     
     def load_settings(self):
-        """Load settings from file or use defaults"""
+        """Load settings from database or file fallback"""
         try:
+            # Try to load from database first
+            if self.supabase:
+                try:
+                    result = self.supabase.table('beforest_settings').select('*').execute()
+                    if result.data:
+                        self.settings = {}
+                        for row in result.data:
+                            self.settings[row['setting_key']] = row['setting_value']
+                        logger.info("Settings loaded from database")
+                        return
+                except Exception as db_error:
+                    logger.warning(f"Failed to load settings from database: {str(db_error)}")
+            
+            # Fallback to file
             if os.path.exists(SETTINGS_FILE):
                 with open(SETTINGS_FILE, 'r') as f:
                     self.settings = json.load(f)
@@ -219,8 +233,23 @@ class BeforestBrandVoice:
             self.settings = self.get_default_settings()
     
     def save_settings(self):
-        """Save current settings to file"""
+        """Save current settings to database and file"""
         try:
+            # Save to database if available
+            if self.supabase:
+                try:
+                    for key, value in self.settings.items():
+                        if key != 'passkey_hash':  # Don't save passkey to DB
+                            self.supabase.rpc('update_setting', {
+                                'p_key': key,
+                                'p_value': value,
+                                'p_updated_by': 'admin'
+                            }).execute()
+                    logger.info("Settings saved to database")
+                except Exception as db_error:
+                    logger.warning(f"Failed to save settings to database: {str(db_error)}")
+            
+            # Always save to file as backup
             with open(SETTINGS_FILE, 'w') as f:
                 json.dump(self.settings, f, indent=2)
             logger.info("Settings saved to file")
@@ -883,16 +912,17 @@ def update_model_settings():
         if 'deployment' in model_settings and not model_settings['deployment']:
             return jsonify({'success': False, 'error': 'Deployment name cannot be empty'}), 400
         
-        # Validate numeric ranges
-        if 'temperature' in model_settings:
-            temp = model_settings['temperature']
-            if temp < 0 or temp > 2:
-                return jsonify({'success': False, 'error': 'Temperature must be between 0 and 2'}), 400
+        # Validate reasoning effort for o3 models
+        if 'reasoning_effort' in model_settings:
+            effort = model_settings['reasoning_effort']
+            if effort not in ['low', 'medium', 'high']:
+                return jsonify({'success': False, 'error': 'Reasoning effort must be low, medium, or high'}), 400
         
-        if 'top_p' in model_settings:
-            top_p = model_settings['top_p']
-            if top_p < 0 or top_p > 1:
-                return jsonify({'success': False, 'error': 'Top P must be between 0 and 1'}), 400
+        # Validate max tokens
+        if 'max_tokens' in model_settings:
+            max_tokens = model_settings['max_tokens']
+            if max_tokens < 100 or max_tokens > 4000:
+                return jsonify({'success': False, 'error': 'Max tokens must be between 100 and 4000'}), 400
         
         # Update settings
         brand_voice.settings['model'].update(model_settings)

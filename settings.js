@@ -617,10 +617,8 @@ function showExample(exampleKey) {
 function applyBeforestPreset() {
     if (confirm('Apply the recommended Beforest brand voice parameters? This will overwrite current model settings.')) {
         // Apply Beforest recommended settings
-        document.getElementById('temperature').value = 0.4;
-        document.getElementById('topP').value = 0.9;
-        document.getElementById('frequencyPenalty').value = 0.6;
-        document.getElementById('presencePenalty').value = 0.3;
+        document.getElementById('reasoningEffort').value = 'medium';
+        document.getElementById('maxTokens').value = 2000;
         
         // Highlight the recommended row
         const recommendedRow = document.querySelector('.recommended-row');
@@ -631,8 +629,122 @@ function applyBeforestPreset() {
             }, 2000);
         }
         
-        alert('Beforest preset applied! Remember to save your settings.');
+        alert('Beforest preset applied for o3-mini! Remember to save your settings.');
     }
+}
+
+// Export/Import Functions
+async function exportSettings() {
+    try {
+        // Get current settings from backend
+        const response = await fetch('/api/settings', {
+            headers: {
+                'X-Settings-Auth': sessionStorage.getItem('settings_authenticated') || 'true'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch settings');
+        }
+        
+        const data = await response.json();
+        const settings = data.settings;
+        
+        // Add metadata
+        const exportData = {
+            version: '1.0',
+            exported_at: new Date().toISOString(),
+            settings: settings
+        };
+        
+        // Create and download file
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `beforest-settings-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert('Settings exported successfully!');
+    } catch (error) {
+        alert('Failed to export settings: ' + error.message);
+    }
+}
+
+async function importSettings(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const statusDiv = document.getElementById('importStatus');
+    statusDiv.style.display = 'block';
+    
+    try {
+        const text = await file.text();
+        const importData = JSON.parse(text);
+        
+        // Validate import data
+        if (!importData.settings || !importData.version) {
+            throw new Error('Invalid settings file format');
+        }
+        
+        // Show preview
+        if (!confirm(`Import settings from ${importData.exported_at}?\n\nThis will overwrite your current settings.`)) {
+            statusDiv.style.display = 'none';
+            return;
+        }
+        
+        // Import prompts
+        if (importData.settings.prompts) {
+            const response = await fetch('/api/settings/prompts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Settings-Auth': sessionStorage.getItem('settings_authenticated')
+                },
+                body: JSON.stringify({ prompts: importData.settings.prompts })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to import prompts');
+            }
+        }
+        
+        // Import model settings
+        if (importData.settings.model) {
+            const response = await fetch('/api/settings/model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Settings-Auth': sessionStorage.getItem('settings_authenticated')
+                },
+                body: JSON.stringify({ model: importData.settings.model })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to import model settings');
+            }
+        }
+        
+        statusDiv.style.background = '#d4edda';
+        statusDiv.style.color = '#155724';
+        statusDiv.textContent = 'Settings imported successfully! Refreshing...';
+        
+        // Reload settings
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        statusDiv.style.background = '#f8d7da';
+        statusDiv.style.color = '#721c24';
+        statusDiv.textContent = 'Import failed: ' + error.message;
+    }
+    
+    // Clear file input
+    event.target.value = '';
 }
 
 // Initialize settings manager
