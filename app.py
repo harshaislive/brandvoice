@@ -418,30 +418,6 @@ Transform the provided content to strictly follow Beforest's brand voice: calm s
                 target_audience=target_audience
             )
 
-TRANSFORMED CONTENT:
-{transformed_content}
-
-CONTENT TYPE: {content_type}
-TARGET AUDIENCE: {target_audience}
-
-Please provide a concise analysis in this exact JSON format:
-{{
-    "key_changes": [
-        "Brief description of main change 1",
-        "Brief description of main change 2",
-        "Brief description of main change 3"
-    ],
-    "brand_voice_improvements": [
-        "How change aligns with calm self-assurance",
-        "How change removes superlatives/drama",
-        "How change respects audience intelligence"
-    ],
-    "audience_adaptation": "How the transformation was tailored for the target audience",
-    "overall_strategy": "One sentence explaining the overall transformation approach"
-}}
-
-Keep each point concise (under 50 words). Focus only on the most significant changes."""
-
             # Call Azure OpenAI for justification
             response = openai.ChatCompletion.create(
                 engine=self.deployment_name,
