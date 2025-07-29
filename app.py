@@ -240,10 +240,8 @@ class BeforestBrandVoice:
             'model': {
                 'deployment': self.deployment_name,
                 'max_tokens': 2000,
-                'temperature': 0.7,
-                'top_p': 0.9,
-                'frequency_penalty': 0,
-                'presence_penalty': 0
+                'reasoning_effort': 'medium',
+                'api_version': self.api_version
             },
             'passkey_hash': DEFAULT_PASSKEY_HASH
         }
@@ -378,19 +376,36 @@ Transform the provided content to strictly follow Beforest's brand voice: calm s
             # Get model settings
             model_settings = self.settings.get('model', {})
             
-            # Call Azure OpenAI with configured parameters
-            response = openai.ChatCompletion.create(
-                engine=model_settings.get('deployment', self.deployment_name),
-                messages=[
+            # Prepare API call parameters based on model type
+            deployment = model_settings.get('deployment', self.deployment_name)
+            
+            # Base parameters for all models
+            api_params = {
+                'engine': deployment,
+                'messages': [
                     {"role": "system", "content": self.settings['prompts'].get('main', self.brand_voice_prompt)},
                     {"role": "user", "content": user_prompt}
                 ],
-                max_completion_tokens=model_settings.get('max_tokens', 2000),
-                temperature=model_settings.get('temperature', 0.7),
-                top_p=model_settings.get('top_p', 0.9),
-                frequency_penalty=model_settings.get('frequency_penalty', 0),
-                presence_penalty=model_settings.get('presence_penalty', 0)
-            )
+                'max_completion_tokens': model_settings.get('max_tokens', 2000)
+            }
+            
+            # Add model-specific parameters
+            if 'o3' in deployment.lower():
+                # o3-mini only supports reasoning_effort
+                reasoning_effort = model_settings.get('reasoning_effort', 'medium')
+                if reasoning_effort in ['low', 'medium', 'high']:
+                    api_params['reasoning_effort'] = reasoning_effort
+            else:
+                # Traditional models support temperature, top_p, etc.
+                api_params.update({
+                    'temperature': model_settings.get('temperature', 0.7),
+                    'top_p': model_settings.get('top_p', 0.9),
+                    'frequency_penalty': model_settings.get('frequency_penalty', 0),
+                    'presence_penalty': model_settings.get('presence_penalty', 0)
+                })
+            
+            # Call Azure OpenAI
+            response = openai.ChatCompletion.create(**api_params)
             
             transformed_content = response.choices[0].message.content.strip()
             logger.info(f"Content transformed successfully - Length: {len(transformed_content)} chars")
@@ -418,15 +433,33 @@ Transform the provided content to strictly follow Beforest's brand voice: calm s
                 target_audience=target_audience
             )
 
-            # Call Azure OpenAI for justification
-            response = openai.ChatCompletion.create(
-                engine=self.deployment_name,
-                messages=[
+            # Get model settings for justification
+            model_settings = self.settings.get('model', {})
+            deployment = model_settings.get('deployment', self.deployment_name)
+            
+            # Prepare API call parameters
+            api_params = {
+                'engine': deployment,
+                'messages': [
                     {"role": "system", "content": "You are an expert content analyst specializing in Beforest's brand voice. Provide precise, factual analysis in the requested JSON format."},
                     {"role": "user", "content": justification_prompt}
                 ],
-                max_completion_tokens=800
-            )
+                'max_completion_tokens': 800
+            }
+            
+            # Add model-specific parameters
+            if 'o3' in deployment.lower():
+                reasoning_effort = model_settings.get('reasoning_effort', 'medium')
+                if reasoning_effort in ['low', 'medium', 'high']:
+                    api_params['reasoning_effort'] = reasoning_effort
+            else:
+                api_params.update({
+                    'temperature': 0.3,  # Lower for more consistent JSON
+                    'top_p': 0.9
+                })
+            
+            # Call Azure OpenAI for justification
+            response = openai.ChatCompletion.create(**api_params)
             
             justification_text = response.choices[0].message.content.strip()
             

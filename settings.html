@@ -547,6 +547,33 @@
             50% { background: #d4edda; }
             100% { background: #f0f8f0; }
         }
+
+        .o3-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+
+        .deprecated-notice {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #721c24;
+        }
+
+        .deprecated-notice h4 {
+            margin-top: 0;
+            color: #721c24;
+        }
+
+        .deprecated-notice ul {
+            margin: 10px 0 0 20px;
+        }
     </style>
 </head>
 <body>
@@ -629,6 +656,11 @@
                 <div class="parameter-guide">
                     <h3>Parameter Guide</h3>
                     <p style="color: #666; margin-bottom: 20px;">Understanding model parameters for different use cases:</p>
+                    
+                    <div class="o3-warning">
+                        <strong>⚠️ Important:</strong> The table below applies to traditional models (GPT-4, GPT-3.5-turbo). 
+                        The o3-mini model only supports <strong>reasoning_effort</strong> and <strong>max_completion_tokens</strong>.
+                    </div>
                     
                     <div class="guide-table-container">
                         <table class="parameter-table">
@@ -748,27 +780,29 @@
                     </div>
 
                     <div class="setting-group">
-                        <label for="temperature">Temperature</label>
-                        <input type="number" id="temperature" placeholder="0.7" min="0" max="2" step="0.1">
-                        <p class="description">Controls randomness (0=deterministic, 2=very random)</p>
+                        <label for="reasoningEffort">Reasoning Effort</label>
+                        <select id="reasoningEffort">
+                            <option value="low">Low - Faster responses</option>
+                            <option value="medium" selected>Medium - Balanced performance</option>
+                            <option value="high">High - More thorough reasoning</option>
+                        </select>
+                        <p class="description">Controls how much computational effort the model uses for reasoning</p>
                     </div>
 
                     <div class="setting-group">
-                        <label for="topP">Top P</label>
-                        <input type="number" id="topP" placeholder="0.9" min="0" max="1" step="0.1">
-                        <p class="description">Nucleus sampling threshold</p>
+                        <label for="apiVersion">API Version</label>
+                        <input type="text" id="apiVersion" placeholder="2025-01-01-preview" readonly>
+                        <p class="description">Azure OpenAI API version (automatically set for o3-mini)</p>
                     </div>
 
-                    <div class="setting-group">
-                        <label for="frequencyPenalty">Frequency Penalty</label>
-                        <input type="number" id="frequencyPenalty" placeholder="0" min="-2" max="2" step="0.1">
-                        <p class="description">Reduce repetition of frequent tokens</p>
-                    </div>
-
-                    <div class="setting-group">
-                        <label for="presencePenalty">Presence Penalty</label>
-                        <input type="number" id="presencePenalty" placeholder="0" min="-2" max="2" step="0.1">
-                        <p class="description">Encourage new topics</p>
+                    <div class="deprecated-notice">
+                        <h4>⚠️ Note about o3-mini Model</h4>
+                        <p>The o3-mini model doesn't support traditional parameters like temperature, top_p, frequency_penalty, or presence_penalty. Instead, it uses:</p>
+                        <ul>
+                            <li><strong>Reasoning Effort:</strong> Controls computational depth</li>
+                            <li><strong>Max Completion Tokens:</strong> Controls response length</li>
+                        </ul>
+                        <p>For models that support traditional parameters, change your deployment to GPT-4 or GPT-3.5-turbo.</p>
                     </div>
                 </div>
 

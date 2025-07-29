@@ -170,10 +170,8 @@ class SettingsManager {
         if (settings.model) {
             document.getElementById('deploymentName').value = settings.model.deployment || 'o3-mini';
             document.getElementById('maxTokens').value = settings.model.max_tokens || 2000;
-            document.getElementById('temperature').value = settings.model.temperature || 0.7;
-            document.getElementById('topP').value = settings.model.top_p || 0.9;
-            document.getElementById('frequencyPenalty').value = settings.model.frequency_penalty || 0;
-            document.getElementById('presencePenalty').value = settings.model.presence_penalty || 0;
+            document.getElementById('reasoningEffort').value = settings.model.reasoning_effort || 'medium';
+            document.getElementById('apiVersion').value = settings.model.api_version || '2025-01-01-preview';
         }
     }
 
@@ -333,10 +331,8 @@ Please transform this content to perfectly match Beforest's brand voice while ma
         const modelSettings = {
             deployment: document.getElementById('deploymentName').value,
             max_tokens: parseInt(document.getElementById('maxTokens').value),
-            temperature: parseFloat(document.getElementById('temperature').value),
-            top_p: parseFloat(document.getElementById('topP').value),
-            frequency_penalty: parseFloat(document.getElementById('frequencyPenalty').value),
-            presence_penalty: parseFloat(document.getElementById('presencePenalty').value)
+            reasoning_effort: document.getElementById('reasoningEffort').value,
+            api_version: document.getElementById('apiVersion').value
         };
 
         try {
