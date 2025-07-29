@@ -429,9 +429,123 @@
             }
         }
 
+        /* Parameter Guide Styles */
+        .parameter-guide {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .parameter-guide h3 {
+            color: var(--forest-green);
+            margin-bottom: 10px;
+        }
+
+        .guide-table-container {
+            overflow-x: auto;
+            margin-bottom: 25px;
+        }
+
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .parameter-table th {
+            background: var(--forest-green);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .parameter-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+
+        .parameter-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .recommended-row {
+            background: #f0f8f0 !important;
+            border: 2px solid var(--forest-green);
+        }
+
+        .recommended-row td {
+            font-weight: 500;
+        }
+
+        .parameter-explanations {
+            margin-top: 25px;
+        }
+
+        .parameter-explanations h4 {
+            color: var(--dark-earth);
+            margin-bottom: 15px;
+        }
+
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .param-card {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid var(--forest-green);
+        }
+
+        .param-card h5 {
+            margin: 0 0 10px 0;
+            color: var(--dark-earth);
+            font-size: 16px;
+        }
+
+        .param-card p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .param-card p strong {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .parameter-table {
+                font-size: 12px;
+            }
+            
+            .parameter-table th,
+            .parameter-table td {
+                padding: 8px;
+            }
+            
+            .param-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
+        }
+
+        @keyframes highlight {
+            0% { background: #f0f8f0; }
+            50% { background: #d4edda; }
+            100% { background: #f0f8f0; }
         }
     </style>
 </head>
@@ -510,6 +624,115 @@
             <!-- Model Settings Panel -->
             <div class="settings-panel" id="model-panel">
                 <h2>Azure OpenAI Model Configuration</h2>
+                
+                <!-- Parameter Guide -->
+                <div class="parameter-guide">
+                    <h3>Parameter Guide</h3>
+                    <p style="color: #666; margin-bottom: 20px;">Understanding model parameters for different use cases:</p>
+                    
+                    <div class="guide-table-container">
+                        <table class="parameter-table">
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Temperature</th>
+                                    <th>Top P</th>
+                                    <th>Presence Penalty</th>
+                                    <th>Frequency Penalty</th>
+                                    <th>Why This Works</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="recommended-row">
+                                    <td><strong>Beforest Brand Voice</strong></td>
+                                    <td>0.3-0.5</td>
+                                    <td>0.9</td>
+                                    <td>0.2-0.5</td>
+                                    <td>0.5-0.8</td>
+                                    <td>Consistent, factual tone with minimal repetition</td>
+                                </tr>
+                                <tr>
+                                    <td>Factual Answers/Summaries</td>
+                                    <td>0.3-0.5</td>
+                                    <td>0.9</td>
+                                    <td>0.2-0.5</td>
+                                    <td>0.5-0.8</td>
+                                    <td>Minimizes errors, reduces repetition for clarity</td>
+                                </tr>
+                                <tr>
+                                    <td>Creative Writing/Brainstorming</td>
+                                    <td>0.8-1.2</td>
+                                    <td>0.95</td>
+                                    <td>0.6-1.0</td>
+                                    <td>0.3-0.6</td>
+                                    <td>Boosts novelty while curbing excessive repeats</td>
+                                </tr>
+                                <tr>
+                                    <td>Code Generation</td>
+                                    <td>0.2-0.4</td>
+                                    <td>0.8</td>
+                                    <td>0.0-0.3</td>
+                                    <td>0.5-0.7</td>
+                                    <td>Ensures logical, non-redundant code</td>
+                                </tr>
+                                <tr>
+                                    <td>Conversational/Chat</td>
+                                    <td>0.7-0.9</td>
+                                    <td>0.9</td>
+                                    <td>0.4-0.8</td>
+                                    <td>0.4-0.7</td>
+                                    <td>Keeps responses engaging and varied</td>
+                                </tr>
+                                <tr>
+                                    <td>Highly Diverse/Ideation</td>
+                                    <td>1.0-1.5</td>
+                                    <td>1.0</td>
+                                    <td>1.0-1.5</td>
+                                    <td>0.8-1.2</td>
+                                    <td>Maximizes creativity, but monitor for off-topic drifts</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Parameter Explanations -->
+                    <div class="parameter-explanations">
+                        <h4>Parameter Explanations:</h4>
+                        <div class="param-grid">
+                            <div class="param-card">
+                                <h5>🌡️ Temperature</h5>
+                                <p><strong>Range:</strong> 0-2</p>
+                                <p><strong>Low (0-0.3):</strong> Predictable, focused</p>
+                                <p><strong>Medium (0.4-0.8):</strong> Balanced creativity</p>
+                                <p><strong>High (0.9+):</strong> Creative, unpredictable</p>
+                            </div>
+                            
+                            <div class="param-card">
+                                <h5>🎯 Top P</h5>
+                                <p><strong>Range:</strong> 0-1</p>
+                                <p><strong>Lower:</strong> More focused vocabulary</p>
+                                <p><strong>Higher:</strong> Broader word choices</p>
+                                <p><strong>0.9:</strong> Good balance for most uses</p>
+                            </div>
+                            
+                            <div class="param-card">
+                                <h5>👥 Presence Penalty</h5>
+                                <p><strong>Range:</strong> -2 to 2</p>
+                                <p><strong>Positive:</strong> Encourages new topics</p>
+                                <p><strong>Zero:</strong> No topic influence</p>
+                                <p><strong>Negative:</strong> Allows topic repetition</p>
+                            </div>
+                            
+                            <div class="param-card">
+                                <h5>🔄 Frequency Penalty</h5>
+                                <p><strong>Range:</strong> -2 to 2</p>
+                                <p><strong>Positive:</strong> Reduces word repetition</p>
+                                <p><strong>Zero:</strong> Natural word frequency</p>
+                                <p><strong>Higher:</strong> More varied vocabulary</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="model-settings">
                     <div class="setting-group">
@@ -549,7 +772,10 @@
                     </div>
                 </div>
 
-                <button class="save-button" onclick="saveModelSettings()">Save Model Settings</button>
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <button class="save-button" onclick="saveModelSettings()">Save Model Settings</button>
+                    <button class="save-button" onclick="applyBeforestPreset()" style="background: #6c757d;">Apply Beforest Preset</button>
+                </div>
             </div>
 
             <!-- Templates Panel -->

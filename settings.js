@@ -618,6 +618,27 @@ function showExample(exampleKey) {
     document.getElementById('exampleDetail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function applyBeforestPreset() {
+    if (confirm('Apply the recommended Beforest brand voice parameters? This will overwrite current model settings.')) {
+        // Apply Beforest recommended settings
+        document.getElementById('temperature').value = 0.4;
+        document.getElementById('topP').value = 0.9;
+        document.getElementById('frequencyPenalty').value = 0.6;
+        document.getElementById('presencePenalty').value = 0.3;
+        
+        // Highlight the recommended row
+        const recommendedRow = document.querySelector('.recommended-row');
+        if (recommendedRow) {
+            recommendedRow.style.animation = 'highlight 2s ease';
+            setTimeout(() => {
+                recommendedRow.style.animation = '';
+            }, 2000);
+        }
+        
+        alert('Beforest preset applied! Remember to save your settings.');
+    }
+}
+
 // Initialize settings manager
 document.addEventListener('DOMContentLoaded', () => {
     window.settingsManager = new SettingsManager();
