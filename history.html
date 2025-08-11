@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#342e29">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Transformation History - Beforest Brand Voice</title>
+    <meta name="description" content="View your transformation history and track your brand voice evolution.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+    <style>
+        /* History-specific styles */
+        .history-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-6);
+        }
+
+        .history-header {
+            text-align: center;
+            margin-bottom: var(--space-12);
+        }
+
+        .history-title {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+        }
+
+        .history-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .history-nav {
+            margin-bottom: var(--space-8);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            color: var(--rich-red);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition-base);
+        }
+
+        .back-link:hover {
+            color: var(--burnt-red);
+            transform: translateX(-2px);
+        }
+
+        .transformations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+
+        .transformation-card {
+            background: var(--surface-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-base);
+            cursor: pointer;
+        }
+
+        .transformation-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-medium);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: var(--space-4);
+        }
+
+        .card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
+
+        .card-date {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .card-type {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--rich-red);
+            background: rgba(134, 49, 43, 0.1);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            width: fit-content;
+        }
+
+        .card-audience {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            margin-top: var(--space-1);
+        }
+
+        .card-creator {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: var(--space-1);
+            font-style: italic;
+        }
+
+        .card-preview {
+            margin-bottom: var(--space-4);
+        }
+
+        .preview-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: var(--space-3);
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: var(--space-3);
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .stat-group {
+            display: flex;
+            gap: var(--space-4);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .stat-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .length-change {
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+        }
+
+        .length-change.positive {
+            background: rgba(52, 71, 54, 0.1);
+            color: var(--forest-green);
+        }
+
+        .length-change.negative {
+            background: rgba(134, 49, 43, 0.1);
+            color: var(--rich-red);
+        }
+
+        .length-change.neutral {
+            background: var(--surface-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-3);
+            margin-top: var(--space-8);
+        }
+
+        .pagination-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-2) var(--space-4);
+            border: 1px solid var(--border-medium);
+            background: var(--surface-primary);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            transition: var(--transition-base);
+        }
+
+        .pagination-btn:hover:not(.disabled) {
+            background: var(--surface-secondary);
+            border-color: var(--border-medium);
+        }
+
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .pagination-btn.current {
+            background: var(--rich-red);
+            color: white;
+            border-color: var(--rich-red);
+        }
+
+        .pagination-info {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: var(--space-16);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-subtle);
+            border-top: 3px solid var(--rich-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-16);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-4);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .empty-description {
+            color: var(--text-secondary);
+            margin-bottom: var(--space-6);
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-6);
+            background: var(--rich-red);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            transition: var(--transition-base);
+        }
+
+        .cta-button:hover {
+            background: var(--burnt-red);
+            transform: translateY(-1px);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .transformations-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .history-container {
+                padding: var(--space-4);
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                gap: var(--space-2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <nav class="history-nav">
+            <a href="/" class="back-link">
+                ← Back to Transformer
+            </a>
+        </nav>
+
+        <header class="history-header">
+            <h1 class="history-title font-serif">Transformation History</h1>
+            <p class="history-subtitle font-sans">
+                Track your brand voice evolution and review past transformations to ensure consistency across all communications.
+            </p>
+        </header>
+
+        <main class="history-main">
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading your transformation history...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">📝</div>
+                <h2 class="empty-title font-serif">No Transformations Yet</h2>
+                <p class="empty-description">
+                    You haven't created any brand voice transformations yet. Start by transforming your first piece of content.
+                </p>
+                <a href="/" class="cta-button">
+                    Create First Transformation
+                </a>
+            </div>
+
+            <!-- Transformations Grid -->
+            <div id="transformations-grid" class="transformations-grid" style="display: none;">
+                <!-- Cards will be dynamically inserted here -->
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="pagination" style="display: none;">
+                <!-- Pagination controls will be dynamically inserted here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Transformation Detail Modal -->
+    <div id="detail-modal" class="modal" style="display: none;" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 id="modal-title" class="modal-title font-serif">Transformation Details</h3>
+                <button class="modal-close" onclick="closeModal()" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-content">
+                    <!-- Modal content will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="history.js"></script>
+</body>
+</html>

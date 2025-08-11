@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#342e29">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Beforest Brand Voice Transformer</title>
+    <meta name="description" content="Transform content to match Beforest's authentic, data-driven brand voice with calm self-assurance.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo-container">
+                <img src="logo.png" alt="Beforest" class="logo-image">
+                <div class="brand-title font-serif">Brand Voice Transformer</div>
+                <div class="brand-subtitle font-sans">Authentic • Data-Driven • Science-Based</div>
+            </div>
+            <nav class="header-nav">
+                <a href="/history" class="nav-link">
+                    📜 View History
+                </a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <!-- Input Section -->
+            <div class="card input-section">
+                <div class="card-header">
+                    <h2 class="card-title font-serif">Transform Content</h2>
+                </div>
+
+                <form id="transform-form" class="transform-form">
+                    <div class="form-group">
+                        <label for="original-content" class="form-label">Original Content</label>
+                        <textarea 
+                            id="original-content" 
+                            class="form-textarea"
+                            placeholder="Enter the content you'd like to transform to match Beforest's brand voice..."
+                            rows="6"
+                            required
+                            aria-describedby="content-help"
+                        ></textarea>
+                        <div id="content-help" class="form-help">
+                            <small class="text-secondary">We'll transform this to match our calm, data-driven communication style.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="content-type" class="form-label">Content Type</label>
+                            <select id="content-type" class="form-select" required aria-describedby="type-help">
+                                <option value="">Choose content type...</option>
+                                <option value="email">Email Communication</option>
+                                <option value="social-media">Social Media Post</option>
+                                <option value="whatsapp">WhatsApp Message</option>
+                                <option value="proposal">Business Proposal</option>
+                                <option value="presentation">Presentation Content</option>
+                                <option value="website-copy">Website Copy</option>
+                                <option value="marketing-material">Marketing Material</option>
+                                <option value="internal-communication">Internal Communication</option>
+                                <option value="press-release">Press Release</option>
+                                <option value="report">Research Report</option>
+                                <option value="blog-post">Blog Post</option>
+                            </select>
+                            <div id="type-help" class="form-help">
+                                <small class="text-secondary">Helps us adapt the tone appropriately.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="target-audience" class="form-label">Target Audience</label>
+                            <select id="target-audience" class="form-select" required aria-describedby="audience-help">
+                                <option value="">Select audience...</option>
+                                <option value="existing-clients">Existing Clients</option>
+                                <option value="prospects">Prospects</option>
+                                <option value="internal-team">Internal Team</option>
+                                <option value="partners">Business Partners</option>
+                                <option value="media">Media & Press</option>
+                                <option value="general-public">General Public</option>
+                                <option value="investors">Investors</option>
+                                <option value="vendors">Vendors & Suppliers</option>
+                                <option value="researchers">Researchers</option>
+                                <option value="regulators">Regulatory Bodies</option>
+                            </select>
+                            <div id="audience-help" class="form-help">
+                                <small class="text-secondary">Ensures appropriate formality and focus.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="user-email" class="form-label">Your Email</label>
+                            <input 
+                                type="email" 
+                                id="user-email" 
+                                class="form-input"
+                                placeholder="your.email@company.com"
+                                required
+                                aria-describedby="email-help"
+                            >
+                            <div id="email-help" class="form-help">
+                                <small class="text-secondary">We'll track who created each transformation for accountability.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="additional-context" class="form-label">
+                                Additional Context 
+                                <span class="form-optional">(Optional)</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="additional-context" 
+                                class="form-input"
+                                placeholder="Any specific requirements, urgency, or context notes..."
+                                aria-describedby="context-help"
+                            >
+                            <div id="context-help" class="form-help">
+                                <small class="text-secondary">Optional details to further refine the transformation.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" id="transform-btn" class="btn btn-primary">
+                            <span class="btn-text">Transform Content</span>
+                            <div class="loading-spinner" style="display: none;">
+                                <div class="spinner"></div>
+                            </div>
+                        </button>
+                        <button type="button" id="clear-btn" class="btn btn-secondary">
+                            Clear All
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Output Section -->
+            <div class="card output-section">
+                <div class="output-header">
+                    <h3 class="output-title font-serif">Brand-Aligned Content</h3>
+                    <div class="output-actions">
+                        <button id="regenerate-btn" class="btn btn-tertiary" disabled aria-label="Generate alternative version">
+                            Regenerate
+                        </button>
+                        <button id="copy-btn" class="btn btn-tertiary" disabled aria-label="Copy content to clipboard">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="output-content">
+                    <div id="output-placeholder" class="output-placeholder">
+                        <div class="placeholder-icon">📝</div>
+                        <p>Your transformed content will appear here...</p>
+                        <small class="text-tertiary">
+                            We'll ensure it matches Beforest's calm, factual, and science-based communication style.
+                        </small>
+                    </div>
+                    <div id="output-text" class="output-text" style="display: none;" role="region" aria-live="polite" aria-label="Transformed content"></div>
+                </div>
+
+                <!-- Transformation Stats -->
+                <div id="transformation-stats" class="transformation-stats" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Original</span>
+                            <span id="original-length" class="stat-value">0</span>
+                            <span class="stat-unit">chars</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Transformed</span>
+                            <span id="transformed-length" class="stat-value">0</span>
+                            <span class="stat-unit">chars</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Change</span>
+                            <span id="length-change" class="stat-value">0%</span>
+                            <span class="stat-unit"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transformation Justification -->
+                <div id="transformation-justification" class="transformation-justification" style="display: none;">
+                    <div class="justification-header">
+                        <h4 class="justification-title font-serif">Transformation Analysis</h4>
+                        <button class="justification-toggle" aria-expanded="false" aria-controls="justification-content">
+                            <span class="justification-toggle-text">Show Details</span>
+                            <span class="justification-toggle-icon">↓</span>
+                        </button>
+                    </div>
+                    <div class="justification-content" id="justification-content" style="display: none;">
+                        <div class="justification-grid">
+                            <div class="justification-section">
+                                <h5 class="justification-section-title">Key Changes</h5>
+                                <ul id="key-changes-list" class="justification-list"></ul>
+                            </div>
+                            
+                            <div class="justification-section">
+                                <h5 class="justification-section-title">Brand Voice Improvements</h5>
+                                <ul id="brand-improvements-list" class="justification-list"></ul>
+                            </div>
+                            
+                            <div class="justification-section full-width">
+                                <h5 class="justification-section-title">Audience Adaptation</h5>
+                                <p id="audience-adaptation" class="justification-text"></p>
+                            </div>
+                            
+                            <div class="justification-section full-width">
+                                <h5 class="justification-section-title">Overall Strategy</h5>
+                                <p id="overall-strategy" class="justification-text"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Quick Tips Section -->
+        <section class="quick-tips" id="quick-tips">
+            <div class="tips-header">
+                <h3 class="tips-title font-serif">Beforest Brand Voice Guidelines</h3>
+                <button class="tips-toggle" aria-expanded="false" aria-controls="tips-content">
+                    <span class="tips-toggle-text">Show Guidelines</span>
+                    <span class="tips-toggle-icon">↓</span>
+                </button>
+            </div>
+            <div class="tips-content" id="tips-content" style="display: none;">
+                <div class="tips-grid">
+                    <div class="tip-item">
+                        <h4 class="tip-title">✅ We Do</h4>
+                        <ul class="tip-list">
+                            <li>Speak with calm self-assurance</li>
+                            <li>Use simple, factual sentences</li>
+                            <li>Trust data to lead conversations</li>
+                            <li>Respect audience intelligence</li>
+                            <li>Focus on proven processes</li>
+                        </ul>
+                    </div>
+                    <div class="tip-item">
+                        <h4 class="tip-title">❌ We Avoid</h4>
+                        <ul class="tip-list">
+                            <li>Superlatives and hyperbole</li>
+                            <li>Drama or emotional manipulation</li>
+                            <li>Teasing, tricking, or terrorizing</li>
+                            <li>Corporate buzzwords</li>
+                            <li>Poetry or flowery language</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>© 2024 Beforest. Ensuring authentic, data-driven communication across all channels.</p>
+            <div class="footer-meta">
+                <small class="text-tertiary">
+                    Powered by Azure OpenAI • Built with science-based principles
+                </small>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Enhanced Notification System -->
+    <div id="notification" class="notification" style="display: none;" role="alert" aria-live="assertive">
+        <div class="notification-content">
+            <span id="notification-text"></span>
+            <button class="notification-close" aria-label="Close notification">&times;</button>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcuts-modal" class="modal" style="display: none;" role="dialog" aria-labelledby="shortcuts-title" aria-modal="true">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="shortcuts-title" class="modal-title font-serif">Keyboard Shortcuts</h3>
+                <button class="modal-close" aria-label="Close shortcuts">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-grid">
+                    <div class="shortcut-item">
+                        <kbd>Ctrl + Enter</kbd>
+                        <span>Transform content</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl + K</kbd>
+                        <span>Clear all fields</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl + C</kbd>
+                        <span>Copy result (when focused)</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>?</kbd>
+                        <span>Show this help</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
