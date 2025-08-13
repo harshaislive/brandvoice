@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(python3:*)",
+      "WebSearch",
+      "mcp__shadcn-ui__get_component",
+      "mcp__shadcn-ui__list_components",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "mcp__shadcn-ui__list_blocks",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "mcp__shadcn-ui__get_component_demo",
+      "mcp__shadcn-ui__get_block",
+      "Bash(npm run build:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(git init:*)"
+    ],
+    "deny": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn-ui"
+  ]
+}

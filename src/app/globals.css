@@ -1,0 +1,516 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Beforest Brand Fonts */
+@font-face {
+  font-family: 'ABC Arizona Flare';
+  src: url('/fonts/ABCArizonaFlare-Regular-Trial.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ABC Arizona Flare';
+  src: url('/fonts/ABCArizonaFlare-Light-Trial.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ABC Arizona Sans';
+  src: url('/fonts/ABCArizonaSans-Regular-Trial.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  /* Beforest Brand Colors */
+  --background: #fdfbf7; /* off-white */
+  --foreground: #342e29; /* dark-earth */
+  --card: #fdfbf7; /* off-white */
+  --card-foreground: #342e29; /* dark-earth */
+  --popover: #fdfbf7; /* off-white */
+  --popover-foreground: #342e29; /* dark-earth */
+  --primary: #344736; /* forest-green */
+  --primary-foreground: #fdfbf7; /* off-white */
+  --secondary: #e7e4df; /* soft-gray */
+  --secondary-foreground: #342e29; /* dark-earth */
+  --muted: #e7e4df; /* soft-gray */
+  --muted-foreground: #51514d; /* charcoal-gray */
+  --accent: #b8dc99; /* soft-green */
+  --accent-foreground: #342e29; /* dark-earth */
+  --destructive: #86312b; /* rich-red */
+  --destructive-foreground: #fdfbf7; /* off-white */
+  --border: #e7e4df; /* soft-gray */
+  --input: #e7e4df; /* soft-gray */
+  --ring: #344736; /* forest-green */
+  --chart-1: #344736; /* forest-green */
+  --chart-2: #ff774a; /* coral-orange */
+  --chart-3: #002140; /* deep-blue */
+  --chart-4: #ffc083; /* warm-yellow */
+  --chart-5: #b8dc99; /* soft-green */
+  --sidebar: #342e29; /* dark-earth */
+  --sidebar-foreground: #fdfbf7; /* off-white */
+  --sidebar-primary: #344736; /* forest-green */
+  --sidebar-primary-foreground: #fdfbf7; /* off-white */
+  --sidebar-accent: #e7e4df; /* soft-gray */
+  --sidebar-accent-foreground: #342e29; /* dark-earth */
+  --sidebar-border: #51514d; /* charcoal-gray */
+  --sidebar-ring: #344736; /* forest-green */
+}
+
+.dark {
+  /* Beforest Dark Theme */
+  --background: #342e29; /* dark-earth */
+  --foreground: #fdfbf7; /* off-white */
+  --card: #4b3c35; /* dark-brown */
+  --card-foreground: #fdfbf7; /* off-white */
+  --popover: #4b3c35; /* dark-brown */
+  --popover-foreground: #fdfbf7; /* off-white */
+  --primary: #b8dc99; /* soft-green */
+  --primary-foreground: #342e29; /* dark-earth */
+  --secondary: #51514d; /* charcoal-gray */
+  --secondary-foreground: #fdfbf7; /* off-white */
+  --muted: #51514d; /* charcoal-gray */
+  --muted-foreground: #e7e4df; /* soft-gray */
+  --accent: #415c43; /* olive-green */
+  --accent-foreground: #fdfbf7; /* off-white */
+  --destructive: #9e3430; /* burnt-red */
+  --destructive-foreground: #fdfbf7; /* off-white */
+  --border: #51514d; /* charcoal-gray */
+  --input: #51514d; /* charcoal-gray */
+  --ring: #b8dc99; /* soft-green */
+  --chart-1: #b8dc99; /* soft-green */
+  --chart-2: #ff774a; /* coral-orange */
+  --chart-3: #b0ddf1; /* light-blue */
+  --chart-4: #ffc083; /* warm-yellow */
+  --chart-5: #415c43; /* olive-green */
+  --sidebar: #000000; /* brand-black */
+  --sidebar-foreground: #fdfbf7; /* off-white */
+  --sidebar-primary: #b8dc99; /* soft-green */
+  --sidebar-primary-foreground: #342e29; /* dark-earth */
+  --sidebar-accent: #51514d; /* charcoal-gray */
+  --sidebar-accent-foreground: #fdfbf7; /* off-white */
+  --sidebar-border: #51514d; /* charcoal-gray */
+  --sidebar-ring: #b8dc99; /* soft-green */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html, body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-x: hidden;
+  }
+  #__next {
+    height: 100%;
+  }
+}
+
+/* Enhanced button feedback and interactions */
+@layer components {
+  /* Focus ring improvements for better accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
+  }
+
+  .focus-ring-inset {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-inset;
+  }
+  .btn-base {
+    @apply transition-all duration-200 ease-in-out;
+    @apply transform active:scale-95;
+  }
+
+  .btn-primary {
+    @apply hover:bg-primary/90 hover:shadow-md;
+    @apply focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
+    @apply active:bg-primary/80;
+  }
+
+  .btn-secondary {
+    @apply hover:bg-secondary/80 hover:shadow-sm;
+    @apply focus:ring-2 focus:ring-secondary/20 focus:ring-offset-2;
+    @apply active:bg-secondary/70;
+  }
+
+  .btn-outline {
+    @apply hover:bg-accent/20 hover:border-accent/40;
+    @apply focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
+    @apply active:bg-accent/10;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-accent/30 hover:text-accent-foreground;
+    @apply focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
+    @apply active:bg-accent/20;
+  }
+
+  .btn-disabled {
+    @apply opacity-50 cursor-not-allowed;
+    @apply hover:bg-current hover:shadow-none;
+    @apply active:transform-none active:scale-100;
+  }
+
+  /* Card hover effects */
+  .card-interactive {
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:shadow-lg hover:-translate-y-0.5;
+    @apply cursor-pointer;
+  }
+
+  /* Input focus states */
+  .input-enhanced {
+    @apply transition-all duration-200;
+    @apply focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
+    @apply focus:border-primary/40;
+  }
+
+  /* Loading states */
+  .loading-pulse {
+    @apply animate-pulse;
+  }
+
+  .loading-spinner {
+    @apply animate-spin;
+  }
+
+  /* Chat-specific responsive classes */
+  .chat-container {
+    @apply h-screen w-full overflow-hidden;
+  }
+
+  .chat-sidebar {
+    @apply w-80 bg-[var(--sidebar)] transition-all duration-300 ease-in-out;
+  }
+
+  .chat-sidebar-collapsed {
+    @apply w-14;
+  }
+
+  /* Fix sidebar rail positioning */
+  [data-sidebar="rail"] {
+    z-index: 1 !important;
+    opacity: 0.3;
+    transition: opacity 0.2s ease;
+  }
+
+  [data-sidebar="rail"]:hover {
+    opacity: 0.8;
+  }
+
+  /* Ensure chat header has proper spacing */
+  .chat-header {
+    position: relative;
+    z-index: 10;
+    background: hsl(var(--background));
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  /* Reduce excessive spacing in sidebar inset */
+  [data-sidebar="inset"] {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  /* Fix header layout spacing */
+  .chat-header {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Ensure sidebar and content are properly aligned */
+  [data-sidebar] {
+    border-right: 1px solid hsl(var(--border));
+  }
+
+  /* Proper sidebar layout */
+  [data-sidebar="provider"] {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  [data-sidebar="sidebar"] {
+    flex-shrink: 0;
+    border-right: 1px solid hsl(var(--border));
+    position: relative;
+    z-index: 10;
+    width: 280px;
+    min-width: 280px;
+    max-width: 280px;
+    height: 100vh;
+    min-height: 100vh;
+  }
+
+  /* Completely eliminate sidebar rail */
+  [data-sidebar="rail"],
+  [data-slot="sidebar-rail"],
+  button[data-sidebar="rail"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+
+  /* Ensure full height layout */
+  [data-sidebar="sidebar"] {
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+
+  .main-content-area {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+  }
+
+  /* Header properly contained */
+  .chat-header {
+    margin: 0;
+    border-left: 0;
+    width: 100%;
+  }
+
+  /* Root container should take full height */
+  .h-screen {
+    height: 100vh !important;
+    min-height: 100vh !important;
+  }
+
+  /* Main content takes remaining space */
+  .main-content-area {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  /* Ensure sidebar and main content are perfectly aligned */
+  [data-sidebar="provider"] > * {
+    align-self: stretch;
+  }
+
+  /* Add padding to header to avoid sidebar trigger overlap */
+  .chat-header {
+    padding-left: 3rem !important;
+  }
+
+  /* Style the floating sidebar trigger */
+  .absolute.z-50 [data-sidebar="trigger"] {
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  }
+
+  /* Ensure proper layout for sidebar provider */
+  [data-sidebar="provider"] {
+    display: flex;
+    width: 100%;
+    gap: 0;
+    overflow: hidden;
+  }
+
+
+  .chat-message-user {
+    @apply max-w-[90%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%];
+  }
+
+  .chat-message-assistant {
+    @apply max-w-[95%] sm:max-w-[90%] md:max-w-[85%] lg:max-w-[80%];
+  }
+
+  .chat-input-container {
+    @apply max-w-full sm:max-w-4xl mx-auto p-3 sm:p-4;
+  }
+
+  .chat-header {
+    @apply h-12 sm:h-14 shrink-0 border-b;
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 640px) {
+    .chat-sidebar {
+      @apply fixed inset-y-0 left-0 z-50 w-64;
+      transform: translateX(-100%);
+    }
+
+    .chat-sidebar[data-state="open"] {
+      transform: translateX(0);
+    }
+
+    .chat-message {
+      @apply text-sm;
+    }
+
+    .chat-input-container {
+      @apply p-2;
+    }
+
+    /* Hide sidebar rail on mobile to prevent overlap */
+    [data-sidebar="rail"] {
+      display: none !important;
+    }
+
+    /* Adjust header padding on mobile */
+    .chat-header {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
+
+  /* Ensure ScrollArea works properly */
+  [data-radix-scroll-area-viewport] {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Make sure chat messages container can scroll */
+  .chat-messages-container {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Ensure ScrollArea takes full height */
+  .chat-messages-container [data-radix-scroll-area-root] {
+    height: 100%;
+    flex: 1;
+  }
+
+  /* Code snippet styling with brand colors */
+  pre, code {
+    background-color: #4b3c35 !important; /* dark-brown */
+    color: #fdfbf7 !important; /* off-white */
+    border-radius: 0.375rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  }
+
+  /* Inline code styling */
+  code:not(pre code) {
+    padding: 0.125rem 0.375rem;
+    font-size: 0.875em;
+    background-color: #4b3c35 !important;
+    color: #fdfbf7 !important;
+    border-radius: 0.25rem;
+    border: none;
+  }
+
+  /* Block code styling */
+  pre {
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+  }
+
+  pre code {
+    padding: 0;
+    background: transparent !important;
+    border-radius: 0;
+  }
+
+  /* Syntax highlighting adjustments for brown background */
+  .hljs {
+    background: #4b3c35 !important;
+    color: #fdfbf7 !important;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-built_in {
+    color: #b8dc99 !important; /* soft-green */
+  }
+
+  .hljs-string,
+  .hljs-title {
+    color: #ffc083 !important; /* warm-yellow */
+  }
+
+  .hljs-comment {
+    color: #e7e4df !important; /* soft-gray */
+    font-style: italic;
+  }
+
+  .hljs-number,
+  .hljs-literal {
+    color: #ff774a !important; /* coral-orange */
+  }
+}
