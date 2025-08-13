@@ -3,14 +3,13 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Copy, Check } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+
 
 interface MarkdownRendererProps {
   content: string
@@ -94,7 +93,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           ),
           
           // Inline code
-          code: ({ inline, className, children, ...props }: {inline?: boolean, className?: string, children?: React.ReactNode} & React.HTMLProps<HTMLElement>) => {
+          code: ({ inline, className, children }: {inline?: boolean, className?: string, children?: React.ReactNode}) => {
             const match = /language-(\w+)/.exec(className || '')
             const language = match ? match[1] : ''
             const codeId = `code-${Math.random().toString(36).substr(2, 9)}`
@@ -119,30 +118,17 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
                       )}
                     </Button>
                   </div>
-                  <SyntaxHighlighter
-                    // @ts-expect-error - Complex type mismatch between style definition and expected type
-                    style={oneDark}
-                    language={language}
-                    PreTag="div"
-                    className="!mt-0 !mb-0 !bg-transparent text-sm"
-                    customStyle={{
-                      margin: 0,
-                      background: 'transparent',
-                      padding: '12px 16px',
-                    }}
-                    {...props}
-                  >
-                    {String(children).replace(/\n$/, '')}
-                  </SyntaxHighlighter>
+                  <pre className="p-3 text-sm bg-transparent overflow-x-auto">
+                    <code className="font-mono text-foreground">
+                      {String(children).replace(/\n$/, '')}
+                    </code>
+                  </pre>
                 </div>
               )
             }
             
             return (
-              <code
-                className="relative rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground"
-                {...props}
-              >
+              <code className="relative rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
                 {children}
               </code>
             )
