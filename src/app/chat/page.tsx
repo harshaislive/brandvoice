@@ -35,22 +35,6 @@ export default function ChatPage() {
   const [enableWebSearch, setEnableWebSearch] = useState(false)
   const [userLocation, setUserLocation] = useState({ country: 'US', city: 'New York', region: 'New York' })
 
-  // Fetch conversations
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      fetchConversations()
-    }
-  }, [isAuthenticated, user])
-
-  // Fetch messages when active conversation changes
-  useEffect(() => {
-    if (activeConversation) {
-      fetchMessages(activeConversation.id)
-    } else {
-      setMessages([])
-    }
-  }, [activeConversation])
-
   const fetchConversations = useCallback(async () => {
     try {
       console.log('fetchConversations called')
@@ -376,6 +360,22 @@ export default function ChatPage() {
       setIsLoading(false)
     }
   }
+
+  // Fetch conversations
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchConversations()
+    }
+  }, [isAuthenticated, user, fetchConversations])
+
+  // Fetch messages when active conversation changes
+  useEffect(() => {
+    if (activeConversation) {
+      fetchMessages(activeConversation.id)
+    } else {
+      setMessages([])
+    }
+  }, [activeConversation, fetchMessages])
 
   if (authLoading) {
     return (

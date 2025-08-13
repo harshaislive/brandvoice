@@ -102,10 +102,6 @@ export default function SettingsPage() {
     defaultValues: DEFAULT_PROMPTS,
   })
 
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
   const loadSettings = useCallback(async () => {
     setIsLoading(true)
     try {
@@ -297,6 +293,9 @@ export default function SettingsPage() {
     }
   }
 
+  useEffect(() => {
+    loadSettings()
+  }, [loadSettings])
 
   if (isLoading) {
     return (
