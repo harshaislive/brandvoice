@@ -1,33 +1,31 @@
+'use client'
+
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="max-w-lg mx-auto text-center">
-        <CardHeader>
-          <div className="text-6xl mb-4">🤔</div>
-          <CardTitle>Page Not Found</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            The page you&apos;re looking for doesn&apos;t exist in the Beforest Brand Voice Transformer.
-          </p>
-          <div className="flex gap-2 justify-center">
-            <Link href="/">
-              <Button>
-                Go Home
-              </Button>
-            </Link>
-            <Link href="/history">
-              <Button variant="outline">
-                View History
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+      <div className="max-w-lg mx-auto text-center bg-white p-8 rounded-lg shadow-lg">
+        <div className="text-6xl mb-4">🤔</div>
+        <h1 className="text-2xl font-bold mb-4">Page Not Found</h1>
+        <p className="text-gray-600 mb-6">
+          The page you&apos;re looking for doesn&apos;t exist in the Beforest Brand Voice Transformer.
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Link 
+            href="/" 
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+          >
+            Go Home
+          </Link>
+          <Link 
+            href="/history" 
+            className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-50 transition-colors"
+          >
+            View History
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
