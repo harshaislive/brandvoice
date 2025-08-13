@@ -16,7 +16,8 @@
       "Bash(npm run build:*)",
       "Bash(git remote add:*)",
       "Bash(git add:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   },
