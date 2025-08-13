@@ -1,8 +1,21 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 
 export default function NotFound() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <div>Loading...</div>
+  }
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
       <div className="max-w-lg mx-auto text-center bg-white p-8 rounded-lg shadow-lg">
