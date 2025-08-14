@@ -99,14 +99,14 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(
     return (
       <div 
         ref={ref}
-        className={cn("chat-messages-container chat-messages-area", className)}
+        className={cn("chat-messages-container", className)}
         role="main"
         aria-label="Chat conversation"
       >
-        <ScrollArea className="h-full w-full">
+        <ScrollArea className="h-full w-full" type="always">
           <div 
             ref={containerRef}
-            className="p-4 pb-24 max-w-4xl mx-auto space-y-1"
+            className="p-4 pb-4 md:pb-24 max-w-4xl mx-auto space-y-1"
             role="log"
             aria-live="polite"
             aria-label="Chat messages"

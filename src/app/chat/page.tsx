@@ -419,16 +419,16 @@ export default function ChatPage() {
         </ChatErrorBoundary>
         
         {/* Main Content Area with proper mobile layout */}
-        <SidebarInset className="flex flex-col h-full">
+        <SidebarInset className="flex flex-col h-full overflow-hidden">
+          <ChatHeader
+            // @ts-expect-error - Type mismatch between interfaces
+            activeConversation={activeConversation}
+            enableWebSearch={enableWebSearch}
+          />
+          
           {activeConversation ? (
             <>
-              <ChatHeader
-                // @ts-expect-error - Type mismatch between interfaces
-                activeConversation={activeConversation}
-                enableWebSearch={enableWebSearch}
-              />
-              
-              <div className="flex-1 min-h-0">
+              <div className="flex-1 overflow-hidden">
                 <ChatErrorBoundary>
                   <ChatMessages
                     // @ts-expect-error - Type mismatch between local and component interfaces
@@ -439,29 +439,25 @@ export default function ChatPage() {
                 </ChatErrorBoundary>
               </div>
 
-              <ChatErrorBoundary>
-                <ChatInput
-                  value={newMessage}
-                  onChange={setNewMessage}
-                  onSend={sendMessage}
-                  isLoading={isLoading}
-                  enableWebSearch={enableWebSearch}
-                  onWebSearchToggle={setEnableWebSearch}
-                  userLocation={userLocation}
-                  onLocationChange={setUserLocation}
-                />
-              </ChatErrorBoundary>
-            </>
-          ) : (
-            <>
-              <ChatHeader
-                activeConversation={null}
-                enableWebSearch={enableWebSearch}
-              />
-              <div className="flex-1 min-h-0">
-                <EmptyChatState />
+              <div className="flex-shrink-0">
+                <ChatErrorBoundary>
+                  <ChatInput
+                    value={newMessage}
+                    onChange={setNewMessage}
+                    onSend={sendMessage}
+                    isLoading={isLoading}
+                    enableWebSearch={enableWebSearch}
+                    onWebSearchToggle={setEnableWebSearch}
+                    userLocation={userLocation}
+                    onLocationChange={setUserLocation}
+                  />
+                </ChatErrorBoundary>
               </div>
             </>
+          ) : (
+            <div className="flex-1 overflow-hidden">
+              <EmptyChatState />
+            </div>
           )}
         </SidebarInset>
       </SidebarProvider>

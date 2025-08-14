@@ -348,22 +348,27 @@
     overflow-y: auto;
     /* Smooth scrolling on mobile */
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
-  /* Fix for mobile keyboard overlay */
+  /* Mobile scrolling improvements */
   @media (max-width: 768px) {
-    .chat-input-area {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 50;
-      background: hsl(var(--background));
-      border-top: 1px solid hsl(var(--border));
+    /* Ensure smooth scrolling on mobile */
+    .chat-messages-container {
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
     
-    .chat-messages-area {
-      padding-bottom: 120px; /* Space for fixed input */
+    /* Fix ScrollArea component on mobile */
+    .chat-messages-container [data-radix-scroll-area-viewport] {
+      height: 100% !important;
+      overflow-y: auto !important;
+    }
+    
+    /* Ensure proper spacing for last message */
+    .chat-messages-container .space-y-1 > *:last-child {
+      margin-bottom: 1rem;
     }
   }
 
