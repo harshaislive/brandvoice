@@ -426,39 +426,35 @@ export default function ChatPage() {
             enableWebSearch={enableWebSearch}
           />
           
-          {activeConversation ? (
-            <>
-              <div className="flex-1 overflow-hidden">
-                <ChatErrorBoundary>
-                  <ChatMessages
-                    // @ts-expect-error - Type mismatch between local and component interfaces
-                    messages={messages}
-                    isLoading={isLoading}
-                    className="h-full"
-                  />
-                </ChatErrorBoundary>
-              </div>
-
-              <div className="flex-shrink-0">
-                <ChatErrorBoundary>
-                  <ChatInput
-                    value={newMessage}
-                    onChange={setNewMessage}
-                    onSend={sendMessage}
-                    isLoading={isLoading}
-                    enableWebSearch={enableWebSearch}
-                    onWebSearchToggle={setEnableWebSearch}
-                    userLocation={userLocation}
-                    onLocationChange={setUserLocation}
-                  />
-                </ChatErrorBoundary>
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden">
+            {activeConversation ? (
+              <ChatErrorBoundary>
+                <ChatMessages
+                  // @ts-expect-error - Type mismatch between local and component interfaces
+                  messages={messages}
+                  isLoading={isLoading}
+                  className="h-full"
+                />
+              </ChatErrorBoundary>
+            ) : (
               <EmptyChatState />
-            </div>
-          )}
+            )}
+          </div>
+
+          <div className="flex-shrink-0">
+            <ChatErrorBoundary>
+              <ChatInput
+                value={newMessage}
+                onChange={setNewMessage}
+                onSend={sendMessage}
+                isLoading={isLoading}
+                enableWebSearch={enableWebSearch}
+                onWebSearchToggle={setEnableWebSearch}
+                userLocation={userLocation}
+                onLocationChange={setUserLocation}
+              />
+            </ChatErrorBoundary>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </div>

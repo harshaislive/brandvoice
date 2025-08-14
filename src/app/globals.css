@@ -341,6 +341,17 @@
     position: relative;
     padding-bottom: env(safe-area-inset-bottom); /* iOS safe area */
   }
+  
+  /* Ensure textarea placeholder is always visible */
+  .mobile-input-container textarea {
+    background: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  .mobile-input-container textarea::placeholder {
+    color: hsl(var(--muted-foreground)) !important;
+    opacity: 0.7 !important;
+  }
 
   /* Ensure chat messages scroll properly on mobile */
   .chat-messages-container {
@@ -366,9 +377,29 @@
       overflow-y: auto !important;
     }
     
+    /* Ensure scrollbar is visible on mobile */
+    .chat-messages-container [data-radix-scroll-area-scrollbar] {
+      opacity: 1 !important;
+      visibility: visible !important;
+      width: 6px !important;
+    }
+    
     /* Ensure proper spacing for last message */
     .chat-messages-container .space-y-1 > *:last-child {
       margin-bottom: 1rem;
+    }
+    
+    /* Ensure placeholder text is visible */
+    .mobile-input-container textarea::placeholder {
+      color: hsl(var(--muted-foreground)) !important;
+      opacity: 1 !important;
+    }
+    
+    /* Ensure sidebar trigger is visible on mobile */
+    [data-sidebar="trigger"] {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
     }
   }
 

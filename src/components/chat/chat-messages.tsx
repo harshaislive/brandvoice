@@ -103,7 +103,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(
         role="main"
         aria-label="Chat conversation"
       >
-        <ScrollArea className="h-full w-full" type="always">
+        <ScrollArea className="h-full w-full" type="scroll">
           <div 
             ref={containerRef}
             className="p-4 pb-4 md:pb-24 max-w-4xl mx-auto space-y-1"
