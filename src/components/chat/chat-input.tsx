@@ -152,7 +152,7 @@ export function ChatInput({
           </div>
         )}
 
-        {/* Message Input */}
+        {/* Message Input with enhanced mobile layout */}
         <div className="flex gap-2 sm:gap-3 items-end">
           <div className="flex-1 relative">
             <Textarea
@@ -167,9 +167,12 @@ export function ChatInput({
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               className={cn(
-                "min-h-[60px] max-h-32 resize-none transition-all duration-200 pr-12",
+                "min-h-[56px] max-h-32 resize-none transition-all duration-200",
+                "text-base sm:text-sm", // Prevent zoom on mobile
                 "focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
-                isFocused && "shadow-sm"
+                "rounded-xl border-2",
+                "pr-12 sm:pr-4", // Extra padding for mobile send button
+                isFocused && "shadow-sm border-primary/40"
               )}
               disabled={isLoading}
               aria-label="Type your message"
@@ -182,20 +185,21 @@ export function ChatInput({
               disabled={!canSend}
               size="sm"
               className={cn(
-                "absolute right-2 bottom-2 h-8 w-8 p-0 sm:hidden transition-all duration-200",
+                "absolute right-2 bottom-2 h-9 w-9 p-0 rounded-full sm:hidden transition-all duration-200",
+                "shadow-md border border-primary/20",
                 canSend 
-                  ? "opacity-100 scale-100" 
-                  : "opacity-50 scale-90"
+                  ? "opacity-100 scale-100 bg-primary hover:bg-primary/90" 
+                  : "opacity-50 scale-90 bg-muted"
               )}
               aria-label="Send message"
             >
               {isLoading ? (
                 <div 
-                  className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"
+                  className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"
                   aria-hidden="true"
                 />
               ) : (
-                <Send className="h-3 w-3" />
+                <Send className="h-4 w-4" />
               )}
             </Button>
           </div>
@@ -206,19 +210,21 @@ export function ChatInput({
             disabled={!canSend}
             size="lg"
             className={cn(
-              "self-end hidden sm:flex transition-all duration-200",
+              "self-end hidden sm:flex transition-all duration-200 rounded-xl",
+              "min-h-[56px] px-6",
               canSend && "hover:shadow-md"
             )}
             aria-label="Send message"
           >
             {isLoading ? (
               <div 
-                className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"
+                className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"
                 aria-hidden="true"
               />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4 mr-2" />
             )}
+            <span className="hidden lg:inline">Send</span>
           </Button>
         </div>
         

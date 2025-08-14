@@ -31,8 +31,9 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
       <div
         ref={ref}
         className={cn(
-          "flex gap-3 mb-6",
+          "flex gap-2 sm:gap-3 mb-4 sm:mb-6 px-1 sm:px-0",
           isUser ? "justify-end" : "justify-start",
+          "chat-message", // Add class for mobile CSS targeting
           className
         )}
         role="article"
@@ -52,10 +53,13 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
         
         <div 
           className={cn(
-            "max-w-[85%] sm:max-w-[80%] md:max-w-[75%] px-4 py-3 rounded-lg transition-all duration-200",
+            "max-w-[90%] sm:max-w-[85%] md:max-w-[75%] message-container",
+            "px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-lg",
+            "transition-all duration-200 text-sm sm:text-base",
+            "touch-pan-y", // Allow vertical scrolling through messages
             isUser 
-              ? "bg-primary text-primary-foreground" 
-              : "bg-card border border-border"
+              ? "bg-primary text-primary-foreground shadow-sm" 
+              : "bg-card border border-border shadow-sm"
           )}
         >
           {message.isLoading ? (

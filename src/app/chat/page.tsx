@@ -401,7 +401,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen w-full overflow-hidden">
+    <div className="h-[100dvh] w-full overflow-hidden">
       <SidebarProvider>
         <ChatErrorBoundary>
           <UnifiedSidebar
@@ -418,15 +418,16 @@ export default function ChatPage() {
           />
         </ChatErrorBoundary>
         
-        {/* Main Content Area with proper mobile layout */}
-        <SidebarInset className="flex flex-col h-full overflow-hidden">
+        {/* Main Content Area with enhanced mobile layout */}
+        <SidebarInset className="flex flex-col h-[100dvh] overflow-hidden relative">
           <ChatHeader
             // @ts-expect-error - Type mismatch between interfaces
             activeConversation={activeConversation}
             enableWebSearch={enableWebSearch}
           />
           
-          <div className="flex-1 overflow-hidden">
+          {/* Messages container with mobile-optimized spacing */}
+          <div className="flex-1 overflow-hidden relative">
             {activeConversation ? (
               <ChatErrorBoundary>
                 <ChatMessages
@@ -441,7 +442,8 @@ export default function ChatPage() {
             )}
           </div>
 
-          <div className="flex-shrink-0">
+          {/* Fixed input area with safe area padding */}
+          <div className="flex-shrink-0 relative z-10">
             <ChatErrorBoundary>
               <ChatInput
                 value={newMessage}
@@ -452,6 +454,7 @@ export default function ChatPage() {
                 onWebSearchToggle={setEnableWebSearch}
                 userLocation={userLocation}
                 onLocationChange={setUserLocation}
+                className="pb-safe"
               />
             </ChatErrorBoundary>
           </div>

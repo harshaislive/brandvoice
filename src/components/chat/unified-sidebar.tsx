@@ -178,6 +178,9 @@ export function UnifiedSidebar({
         "w-[280px] font-sans",
         "bg-[--chat-sidebar-bg] text-[--chat-sidebar-text]",
         "flex flex-col",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+        "md:data-[state=closed]:slide-out-to-left-0 md:data-[state=open]:slide-in-from-left-0",
         className
       )} 
       style={{ 

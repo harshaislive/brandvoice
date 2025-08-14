@@ -95,33 +95,46 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(
       )
     }
 
-    // Standard scrolling implementation for smaller message lists
+    // Standard scrolling implementation with mobile optimizations
     return (
       <div 
         ref={ref}
-        className={cn("chat-messages-container", className)}
+        className={cn(
+          "chat-messages-container h-full w-full relative",
+          "overflow-hidden", // Prevent overflow on container
+          className
+        )}
         role="main"
         aria-label="Chat conversation"
       >
         <ScrollArea className="h-full w-full" type="scroll">
           <div 
             ref={containerRef}
-            className="p-4 pb-4 md:pb-24 max-w-4xl mx-auto space-y-1"
+            className={cn(
+              "p-3 sm:p-4 max-w-4xl mx-auto space-y-2",
+              "pb-safe-offset-4", // Extra padding for mobile safe area
+              "min-h-full flex flex-col"
+            )}
             role="log"
             aria-live="polite"
             aria-label="Chat messages"
           >
+            {/* Spacer to push messages to bottom when few messages */}
+            <div className="flex-1 min-h-4" />
+            
             {messages.map((message, index) => (
               <ChatMessage
                 key={message.id}
                 message={message}
                 isStreaming={isLoading && index === messages.length - 1}
-                className="scroll-mt-4"
+                className="scroll-mt-4 flex-shrink-0"
               />
             ))}
+            
+            {/* Bottom spacing with safe area consideration */}
             <div 
               ref={messagesEndRef} 
-              className="h-1"
+              className="h-4 sm:h-8 pb-safe flex-shrink-0"
               aria-hidden="true"
             />
           </div>
