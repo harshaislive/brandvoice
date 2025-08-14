@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { 
-  SidebarProvider
+  SidebarProvider,
+  SidebarInset
 } from '@/components/ui/sidebar'
 import { UnifiedSidebar } from '@/components/chat/unified-sidebar'
 import { ChatHeader } from '@/components/chat/chat-header'
@@ -402,25 +403,23 @@ export default function ChatPage() {
   return (
     <div className="h-screen w-full overflow-hidden" style={{ height: '100vh', minHeight: '100vh' }}>
       <SidebarProvider>
-        <div className="flex h-full w-full">
-          <ChatErrorBoundary>
-            <UnifiedSidebar
-              conversations={conversations}
-              activeConversation={activeConversation}
-              user={user}
-              // @ts-expect-error - Type mismatch between local and component interfaces
-              onConversationSelect={setActiveConversation}
-              onCreateConversation={createConversation}
-              onDeleteConversation={deleteConversation}
-              onEditConversation={editConversation}
-              onNavigateToTransform={handleNavigateToTransform}
-              isLoading={conversationsLoading}
-            />
-          </ChatErrorBoundary>
-          
-          {/* Main Content Area */}
-          <div className="main-content-area bg-background">
-          
+        <ChatErrorBoundary>
+          <UnifiedSidebar
+            conversations={conversations}
+            activeConversation={activeConversation}
+            user={user}
+            // @ts-expect-error - Type mismatch between local and component interfaces
+            onConversationSelect={setActiveConversation}
+            onCreateConversation={createConversation}
+            onDeleteConversation={deleteConversation}
+            onEditConversation={editConversation}
+            onNavigateToTransform={handleNavigateToTransform}
+            isLoading={conversationsLoading}
+          />
+        </ChatErrorBoundary>
+        
+        {/* Main Content Area - Now properly responsive with SidebarInset */}
+        <SidebarInset className="flex flex-col h-full">
           {activeConversation ? (
             <>
               <ChatHeader
@@ -459,8 +458,7 @@ export default function ChatPage() {
               <EmptyChatState />
             </>
           )}
-          </div>
-        </div>
+        </SidebarInset>
       </SidebarProvider>
     </div>
   )

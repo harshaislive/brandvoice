@@ -311,11 +311,7 @@
     position: relative;
   }
 
-  .main-content-area {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-  }
+  /* Removed main-content-area styles - now using SidebarInset for responsive layout */
 
   /* Header properly contained */
   .chat-header {
@@ -330,17 +326,7 @@
     min-height: 100vh !important;
   }
 
-  /* Main content takes remaining space */
-  .main-content-area {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
-  }
+  /* Main content layout now handled by SidebarInset component */
 
   /* Ensure sidebar and main content are perfectly aligned */
   [data-sidebar="provider"] > * {

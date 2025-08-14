@@ -173,9 +173,9 @@ export function UnifiedSidebar({
   return (
     <Sidebar 
       variant="sidebar" 
-      collapsible="none" 
+      collapsible="offcanvas" 
       className={cn(
-        "w-[280px] font-sans h-screen min-h-screen",
+        "w-[280px] font-sans",
         "bg-[--chat-sidebar-bg] text-[--chat-sidebar-text]",
         "flex flex-col",
         className
