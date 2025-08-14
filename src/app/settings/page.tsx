@@ -167,6 +167,8 @@ export default function SettingsPage() {
         setLastSaved(new Date())
         setIsUsingDefaults(false)
         toast.success('System prompts saved to database successfully!')
+        // Reload settings from database to ensure consistency
+        await loadSettings()
       } else {
         const error = await response.json()
         throw new Error(error.error || 'Failed to save settings')

@@ -36,8 +36,12 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || null
     const sessionId = request.headers.get('x-session-id') || null
 
-    // Build transformation prompt based on content type and audience
-    const systemPrompt = `You are the Beforest Brand Voice Curator, an expert AI assistant specialized in transforming content to match the authentic, warm, and premium brand voice of Beforest.
+    // Load system prompts from database
+    let systemPrompt = ''
+    let transformationPrompt = ''
+    
+    // Default prompts as fallback
+    const defaultSystemPrompt = `You are the Beforest Brand Voice Curator, an expert AI assistant specialized in transforming content to match the authentic, warm, and premium brand voice of Beforest.
 
 Your role is to transform content while:
 - Maintaining the original meaning and intent
@@ -52,30 +56,62 @@ Beforest brand characteristics:
 - Expert yet accessible
 - Nature-inspired and sustainable focus
 - Environmentally conscious messaging`
-
-    let transformationPrompt = ''
     
-    switch (content_type) {
-      case 'marketing':
-        transformationPrompt = `Transform this content into compelling marketing copy for ${target_audience}:`
-        break
-      case 'email':
-        transformationPrompt = `Transform this content into a professional email for ${target_audience}:`
-        break
-      case 'social':
-        transformationPrompt = `Transform this content for social media targeting ${target_audience}:`
-        break
-      case 'blog':
-        transformationPrompt = `Transform this content into engaging blog content for ${target_audience}:`
-        break
-      case 'website':
-        transformationPrompt = `Transform this content for website copy targeting ${target_audience}:`
-        break
-      case 'product':
-        transformationPrompt = `Transform this content into compelling product descriptions for ${target_audience}:`
-        break
-      default:
-        transformationPrompt = `Transform this content to match Beforest's brand voice for ${target_audience}:`
+    try {
+      const { data: settings, error } = await supabase
+        .from('beforest_settings')
+        .select('setting_value')
+        .eq('setting_key', 'prompts')
+        .single()
+
+      if (error || !settings) {
+        console.warn('Could not load prompts from database, using defaults')
+        systemPrompt = defaultSystemPrompt
+      } else {
+        // Parse prompts from database
+        let promptsData = settings.setting_value
+        if (typeof promptsData === 'string') {
+          promptsData = JSON.parse(promptsData)
+        }
+        
+        systemPrompt = promptsData.main || defaultSystemPrompt
+        
+        // Also load transformation prompt if available
+        if (promptsData.transform) {
+          transformationPrompt = promptsData.transform
+            .replace('{target_audience}', target_audience)
+            .replace('{content_type}', content_type)
+        }
+      }
+    } catch (error) {
+      console.error('Error loading prompts:', error)
+      systemPrompt = defaultSystemPrompt
+    }
+    
+    // Fallback to default prompts if database prompt not available
+    if (!transformationPrompt) {
+      switch (content_type) {
+        case 'marketing':
+          transformationPrompt = `Transform this content into compelling marketing copy for ${target_audience}:`
+          break
+        case 'email':
+          transformationPrompt = `Transform this content into a professional email for ${target_audience}:`
+          break
+        case 'social':
+          transformationPrompt = `Transform this content for social media targeting ${target_audience}:`
+          break
+        case 'blog':
+          transformationPrompt = `Transform this content into engaging blog content for ${target_audience}:`
+          break
+        case 'website':
+          transformationPrompt = `Transform this content for website copy targeting ${target_audience}:`
+          break
+        case 'product':
+          transformationPrompt = `Transform this content into compelling product descriptions for ${target_audience}:`
+          break
+        default:
+          transformationPrompt = `Transform this content to match Beforest's brand voice for ${target_audience}:`
+      }
     }
 
     const fullPrompt = `${transformationPrompt}
