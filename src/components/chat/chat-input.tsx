@@ -3,9 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -87,79 +84,54 @@ export function ChatInput({
       )}
     >
       <div className="max-w-4xl mx-auto p-3 sm:p-4">
-        {/* Web Search Controls */}
+        {/* Modern Web Search Toggle - ChatGPT Style */}
         {onWebSearchToggle && (
-          <div 
-            className="flex items-center justify-between mb-3 p-3 bg-muted/30 rounded-lg transition-colors duration-200"
-            role="region"
-            aria-label="Web search settings"
-          >
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={enableWebSearch}
-                        onCheckedChange={onWebSearchToggle}
-                        id="web-search"
-                        aria-describedby="web-search-description"
-                      />
-                      <label 
-                        htmlFor="web-search" 
-                        className="text-sm font-medium cursor-pointer select-none"
-                      >
-                        Web Search
-                      </label>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p id="web-search-description">
-                      Enable real-time web search for up-to-date information
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <Button
+                variant={enableWebSearch ? "default" : "outline"}
+                size="sm"
+                onClick={() => onWebSearchToggle(!enableWebSearch)}
+                className={cn(
+                  "rounded-full px-3 py-1 h-7 text-xs font-medium transition-all",
+                  enableWebSearch 
+                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm" 
+                    : "border-border/60 hover:border-border text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <svg className="w-3 h-3 mr-1.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                </svg>
+                Search {enableWebSearch ? 'enabled' : 'web'}
+              </Button>
               
               {enableWebSearch && userLocation && onLocationChange && (
-                <div className="flex items-center gap-2">
-                  <Badge 
-                    variant="secondary" 
-                    className="text-xs"
-                    aria-label={`Current location: ${userLocation.city}, ${userLocation.country}`}
-                  >
-                    🌐 {userLocation.city}, {userLocation.country}
-                  </Badge>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-xs hover:bg-muted"
-                        onClick={handleLocationChange}
-                        aria-label="Change location for search results"
-                      >
-                        📍 Change
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Update your location for localized search results</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLocationChange}
+                  className="rounded-full px-3 py-1 h-7 text-xs text-muted-foreground hover:text-foreground border border-border/60 hover:border-border"
+                >
+                  🌐 {userLocation.city}
+                </Button>
               )}
             </div>
           </div>
         )}
 
-        {/* Message Input with enhanced mobile layout */}
-        <div className="flex gap-2 sm:gap-3 items-end">
-          <div className="flex-1 relative">
+        {/* ChatGPT-style Message Input */}
+        <div className="relative">
+          <div className={cn(
+            "relative flex items-center gap-2 rounded-3xl border border-border/50",
+            "bg-background/60 backdrop-blur-sm transition-all duration-200",
+            "hover:border-border focus-within:border-primary/50 focus-within:shadow-sm",
+            isFocused && "border-primary/50 shadow-sm"
+          )}>
             <Textarea
               ref={textareaRef}
               placeholder={enableWebSearch 
-                ? "Ask anything - I can search the web for the latest information..."
-                : "Ask about brand voice, request transformations, or chat about content..."
+                ? "Message ChatGPT..."
+                : "Message ChatGPT..."
               }
               value={value}
               onChange={(e) => onChange(e.target.value)}
@@ -167,65 +139,37 @@ export function ChatInput({
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               className={cn(
-                "min-h-[56px] max-h-32 resize-none transition-all duration-200",
-                "text-base sm:text-sm", // Prevent zoom on mobile
-                "focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
-                "rounded-xl border-2",
-                "pr-12 sm:pr-4", // Extra padding for mobile send button
-                isFocused && "shadow-sm border-primary/40"
+                "min-h-[52px] max-h-32 resize-none bg-transparent border-0",
+                "text-base sm:text-sm leading-6 placeholder:text-muted-foreground/60",
+                "focus:ring-0 focus:outline-none px-4 py-3 pr-12",
+                "scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
               )}
               disabled={isLoading}
               aria-label="Type your message"
-              aria-describedby="input-help"
+              rows={1}
             />
             
-            {/* Send button for mobile - overlaid on textarea */}
+            {/* ChatGPT-style send button */}
             <Button
               onClick={onSend}
               disabled={!canSend}
-              size="sm"
+              size="icon"
               className={cn(
-                "absolute right-2 bottom-2 h-9 w-9 p-0 rounded-full sm:hidden transition-all duration-200",
-                "shadow-md border border-primary/20",
+                "absolute right-2 h-8 w-8 rounded-full transition-all duration-200",
+                "flex items-center justify-center",
                 canSend 
-                  ? "opacity-100 scale-100 bg-primary hover:bg-primary/90" 
-                  : "opacity-50 scale-90 bg-muted"
+                  ? "bg-foreground text-background hover:bg-foreground/90 scale-100" 
+                  : "bg-muted text-muted-foreground scale-95 cursor-not-allowed"
               )}
               aria-label="Send message"
             >
               {isLoading ? (
-                <div 
-                  className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"
-                  aria-hidden="true"
-                />
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
                 <Send className="h-4 w-4" />
               )}
             </Button>
           </div>
-          
-          {/* Send button for desktop */}
-          <Button
-            onClick={onSend}
-            disabled={!canSend}
-            size="lg"
-            className={cn(
-              "self-end hidden sm:flex transition-all duration-200 rounded-xl",
-              "min-h-[56px] px-6",
-              canSend && "hover:shadow-md"
-            )}
-            aria-label="Send message"
-          >
-            {isLoading ? (
-              <div 
-                className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"
-                aria-hidden="true"
-              />
-            ) : (
-              <Send className="h-4 w-4 mr-2" />
-            )}
-            <span className="hidden lg:inline">Send</span>
-          </Button>
         </div>
         
         {/* Help text */}

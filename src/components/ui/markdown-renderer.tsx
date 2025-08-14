@@ -100,29 +100,31 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             
             if (!inline && language) {
               return (
-                <div className="relative my-4 rounded-lg border bg-muted/30">
-                  <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/50">
-                    <Badge variant="outline" className="text-xs">
+                <div className="relative my-4 rounded-xl border bg-card/50 backdrop-blur-sm overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/30">
+                    <Badge variant="secondary" className="text-xs font-medium">
                       {language}
                     </Badge>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 px-2 text-xs"
+                      className="h-7 px-2 text-xs hover:bg-muted/60 rounded-md"
                       onClick={() => copyToClipboard(String(children), codeId)}
                     >
                       {copiedCode === codeId ? (
-                        <Check className="h-3 w-3" />
+                        <><Check className="h-3 w-3 mr-1" />Copied</>
                       ) : (
-                        <Copy className="h-3 w-3" />
+                        <><Copy className="h-3 w-3 mr-1" />Copy</>
                       )}
                     </Button>
                   </div>
-                  <pre className="p-3 text-sm bg-transparent overflow-x-auto">
-                    <code className="font-mono text-foreground">
-                      {String(children).replace(/\n$/, '')}
-                    </code>
-                  </pre>
+                  <div className="overflow-x-auto max-w-full">
+                    <pre className="p-4 text-sm bg-transparent">
+                      <code className="font-mono text-foreground/90 leading-relaxed block whitespace-pre overflow-x-auto">
+                        {String(children).replace(/\n$/, '')}
+                      </code>
+                    </pre>
+                  </div>
                 </div>
               )
             }
@@ -141,10 +143,10 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             </blockquote>
           ),
           
-          // Tables
+          // Tables with proper overflow handling
           table: ({ children }) => (
-            <div className="my-4 overflow-x-auto">
-              <table className="w-full border-collapse border border-border rounded-md">
+            <div className="my-4 overflow-x-auto max-w-full rounded-lg border">
+              <table className="w-full border-collapse">
                 {children}
               </table>
             </div>

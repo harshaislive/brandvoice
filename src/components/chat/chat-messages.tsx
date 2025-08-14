@@ -51,11 +51,12 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(
       }
     }, [messages.length])
 
-    // Scroll when streaming content updates
+    // Optimized scroll for streaming with debouncing
     useEffect(() => {
       const hasStreamingMessage = messages.some(m => m.isLoading || m.isSearching)
       if (hasStreamingMessage) {
-        scrollToBottom(false) // Immediate scroll for streaming
+        const timer = setTimeout(() => scrollToBottom(false), 50) // Debounced scroll
+        return () => clearTimeout(timer)
       }
     }, [messages])
 

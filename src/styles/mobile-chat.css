@@ -28,6 +28,45 @@
   overscroll-behavior: contain;
 }
 
+/* Improved code block overflow handling */
+.markdown-content pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.markdown-content code {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Message container responsive overflow */
+.message-container {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.message-container * {
+  max-width: 100%;
+}
+
+/* Smooth animations for thinking dots */
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* ChatGPT-style input container */
+.chat-input-container {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 /* Improved touch targets for mobile */
 @media (max-width: 768px) {
   button, [role="button"] {
@@ -131,6 +170,22 @@
   .message-container {
     max-width: 100%;
     padding: 0.75rem;
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 768px) {
+  .markdown-content {
+    overflow-x: hidden;
+  }
+  
+  .markdown-content pre {
+    margin: 0 -0.5rem;
+    border-radius: 0;
+  }
+  
+  .markdown-content table {
+    font-size: 0.75rem;
   }
 }
 

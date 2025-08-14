@@ -2,7 +2,6 @@
 
 import { forwardRef } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Skeleton } from '@/components/ui/skeleton'
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer'
 import { cn } from '@/lib/utils'
 
@@ -54,12 +53,13 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
         <div 
           className={cn(
             "max-w-[90%] sm:max-w-[85%] md:max-w-[75%] message-container",
-            "px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-lg",
+            "px-3 sm:px-4 py-3 sm:py-3 rounded-2xl sm:rounded-xl",
             "transition-all duration-200 text-sm sm:text-base",
+            "overflow-hidden break-words", // Prevent content overflow
             "touch-pan-y", // Allow vertical scrolling through messages
             isUser 
-              ? "bg-primary text-primary-foreground shadow-sm" 
-              : "bg-card border border-border shadow-sm"
+              ? "bg-foreground text-background shadow-sm" 
+              : "bg-muted/50 border border-border/50 shadow-sm"
           )}
         >
           {message.isLoading ? (
@@ -88,18 +88,14 @@ ChatMessage.displayName = 'ChatMessage'
 
 function LoadingContent() {
   return (
-    <div className="space-y-2" role="status" aria-label="AI is thinking">
-      <div className="flex items-center gap-2 mb-2">
-        <div 
-          className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"
-          aria-hidden="true"
-        />
-        <span className="text-sm">Thinking...</span>
-      </div>
-      <div className="space-y-2" aria-hidden="true">
-        <Skeleton className="h-3 w-full" />
-        <Skeleton className="h-3 w-4/5" />
-        <Skeleton className="h-3 w-3/4" />
+    <div className="space-y-3" role="status" aria-label="AI is thinking">
+      <div className="flex items-center gap-2">
+        <div className="flex space-x-1">
+          <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
+        </div>
+        <span className="text-sm font-medium text-muted-foreground">Thinking...</span>
       </div>
     </div>
   )
@@ -107,21 +103,17 @@ function LoadingContent() {
 
 function SearchingContent({ isSearching }: { isSearching?: boolean }) {
   return (
-    <div className="space-y-2" role="status" aria-label={isSearching ? "Searching the web" : "Loading"}>
+    <div className="space-y-3" role="status" aria-label={isSearching ? "Searching the web" : "Loading"}>
       {isSearching && (
-        <div className="flex items-center gap-2 mb-2">
-          <div 
-            className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"
-            aria-hidden="true"
-          />
-          <span className="text-sm text-blue-600">🔍 Searching the web...</span>
+        <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex space-x-1">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+          </div>
+          <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Searching the web...</span>
         </div>
       )}
-      <div className="space-y-2" aria-hidden="true">
-        <Skeleton className="h-3 w-full" />
-        <Skeleton className="h-3 w-4/5" />
-        <Skeleton className="h-3 w-2/3" />
-      </div>
     </div>
   )
 }
@@ -150,10 +142,10 @@ function MessageContent({
       
       {!isUser && isStreaming && message.content && !message.isSearching && (
         <span 
-          className="inline-block w-2 h-4 bg-current animate-pulse ml-1 align-baseline opacity-70"
+          className="inline-block w-2 h-4 bg-foreground/60 animate-pulse ml-1 align-baseline"
           aria-label="AI is typing"
         >
-          |
+          <div className="w-0.5 h-4 bg-current animate-pulse"></div>
         </span>
       )}
       
