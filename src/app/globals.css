@@ -320,10 +320,51 @@
     width: 100%;
   }
 
-  /* Root container should take full height */
+  /* Root container with mobile viewport support */
   .h-screen {
-    height: 100vh !important;
+    height: 100vh !important; /* Fallback for older browsers */
+    height: 100dvh !important; /* Dynamic viewport height - accounts for mobile browser UI */
     min-height: 100vh !important;
+    min-height: 100dvh !important;
+  }
+
+  /* Mobile-specific viewport fixes */
+  @supports (-webkit-touch-callout: none) {
+    .h-screen {
+      /* WebKit-specific fix for iOS */
+      min-height: -webkit-fill-available !important;
+    }
+  }
+
+  /* Mobile chat input accessibility */
+  .mobile-input-container {
+    position: relative;
+    padding-bottom: env(safe-area-inset-bottom); /* iOS safe area */
+  }
+
+  /* Ensure chat messages scroll properly on mobile */
+  .chat-messages-container {
+    height: 100%;
+    overflow-y: auto;
+    /* Smooth scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Fix for mobile keyboard overlay */
+  @media (max-width: 768px) {
+    .chat-input-area {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: hsl(var(--background));
+      border-top: 1px solid hsl(var(--border));
+    }
+    
+    .chat-messages-area {
+      padding-bottom: 120px; /* Space for fixed input */
+    }
   }
 
   /* Main content layout now handled by SidebarInset component */

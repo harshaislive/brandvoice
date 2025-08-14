@@ -99,7 +99,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(
     return (
       <div 
         ref={ref}
-        className={cn("chat-messages-container", className)}
+        className={cn("chat-messages-container chat-messages-area", className)}
         role="main"
         aria-label="Chat conversation"
       >

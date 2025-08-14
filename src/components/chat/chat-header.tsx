@@ -31,7 +31,7 @@ export function ChatHeader({
         {/* Left: Mobile trigger, Logo and Title */}
         <div className="flex items-center gap-3 flex-1 min-w-0 mr-4">
           {isMobile && (
-            <SidebarTrigger className="mr-2" />
+            <SidebarTrigger className="mr-2 p-2 hover:bg-accent rounded-md transition-colors" aria-label="Open chat history" />
           )}
           <Image
             src="/logo.png"

@@ -81,6 +81,7 @@ export function ChatInput({
     <div 
       className={cn(
         "border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 transition-all duration-200",
+        "chat-input-area mobile-input-container", // Add mobile-specific classes
         isFocused && "border-primary/20",
         className
       )}

@@ -401,7 +401,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen w-full overflow-hidden" style={{ height: '100vh', minHeight: '100vh' }}>
+    <div className="h-screen w-full overflow-hidden">
       <SidebarProvider>
         <ChatErrorBoundary>
           <UnifiedSidebar
@@ -418,7 +418,7 @@ export default function ChatPage() {
           />
         </ChatErrorBoundary>
         
-        {/* Main Content Area - Now properly responsive with SidebarInset */}
+        {/* Main Content Area with proper mobile layout */}
         <SidebarInset className="flex flex-col h-full">
           {activeConversation ? (
             <>
@@ -428,13 +428,16 @@ export default function ChatPage() {
                 enableWebSearch={enableWebSearch}
               />
               
-              <ChatErrorBoundary>
-                <ChatMessages
-                  // @ts-expect-error - Type mismatch between local and component interfaces
-                  messages={messages}
-                  isLoading={isLoading}
-                />
-              </ChatErrorBoundary>
+              <div className="flex-1 min-h-0">
+                <ChatErrorBoundary>
+                  <ChatMessages
+                    // @ts-expect-error - Type mismatch between local and component interfaces
+                    messages={messages}
+                    isLoading={isLoading}
+                    className="h-full"
+                  />
+                </ChatErrorBoundary>
+              </div>
 
               <ChatErrorBoundary>
                 <ChatInput
@@ -455,7 +458,9 @@ export default function ChatPage() {
                 activeConversation={null}
                 enableWebSearch={enableWebSearch}
               />
-              <EmptyChatState />
+              <div className="flex-1 min-h-0">
+                <EmptyChatState />
+              </div>
             </>
           )}
         </SidebarInset>
