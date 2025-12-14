@@ -38,32 +38,37 @@ export function Navigation() {
 
   const NavContent = ({ onItemClick }: { onItemClick?: () => void }) => (
     <>
-      <div className="mb-8 flex flex-col items-center text-center space-y-3">
+      <div className="mb-10 flex flex-col items-center text-center space-y-4 pt-4">
         <Image
           src="/logo.png"
           alt="Logo"
           width={60}
           height={60}
-          className="invert object-contain w-[60px] h-[60px] sm:w-[80px] sm:h-[80px]"
+          className="invert object-contain w-[60px] h-[60px]"
         />
-        <p className="text-base sm:text-lg font-semibold text-[#342e29] leading-tight">
-          Brand Voice Transformer
+        <p className="text-xl font-serif font-light text-sidebar-foreground tracking-wide leading-tight">
+          Beforest<br/>
+          <span className="text-sm font-sans opacity-80">Brand Voice</span>
         </p>
       </div>
 
-      <div className="space-y-2 flex-1">
+      <div className="space-y-1 flex-1 px-2">
         {navItems.map((item) => {
           const IconComponent = item.icon
           return (
             <Button
               key={item.href}
-              variant={pathname === item.href ? 'default' : 'ghost'}
-              className="w-full justify-start gap-3 h-11 text-sm"
+              variant={pathname === item.href ? 'secondary' : 'ghost'}
+              className={`w-full justify-start gap-4 h-12 text-base font-light transition-all duration-300 ${
+                pathname === item.href 
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm' 
+                  : 'text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/10'
+              }`}
               asChild
               onClick={onItemClick}
             >
               <Link href={item.href}>
-                <IconComponent className="h-4 w-4 flex-shrink-0" />
+                <IconComponent className="h-5 w-5 flex-shrink-0" />
                 {item.label}
               </Link>
             </Button>
@@ -71,17 +76,17 @@ export function Navigation() {
         })}
       </div>
 
-      <div className="mt-auto">
+      <div className="mt-auto pt-6 px-2 pb-4">
         {isAuthenticated ? (
-          <Card className="p-3 sm:p-4 bg-accent/50">
+          <div className="rounded-lg border border-sidebar-border bg-sidebar-primary/10 p-4 backdrop-blur-sm">
             <div className="mb-3">
-              <h3 className="font-medium text-sm">{user?.displayName}</h3>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              <h3 className="font-serif font-medium text-sidebar-foreground">{user?.displayName}</h3>
+              <p className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</p>
             </div>
             <Button 
               size="sm" 
               variant="outline" 
-              className="w-full h-9"
+              className="w-full border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground bg-transparent transition-colors"
               onClick={() => {
                 logout()
                 onItemClick?.()
@@ -89,26 +94,26 @@ export function Navigation() {
             >
               Sign Out
             </Button>
-          </Card>
+          </div>
         ) : (
-          <Card className="p-3 sm:p-4 bg-accent/50">
-            <h3 className="font-medium mb-2 text-sm">Get Started</h3>
-            <p className="text-xs text-muted-foreground mb-3">
+          <div className="rounded-lg border border-sidebar-border bg-sidebar-primary/10 p-4 backdrop-blur-sm">
+            <h3 className="font-serif font-medium text-sidebar-foreground mb-1">Get Started</h3>
+            <p className="text-xs text-sidebar-foreground/60 mb-4">
               Sign in to access your transformations
             </p>
             <div className="space-y-2">
-              <Link href="/auth/login">
-                <Button size="sm" className="w-full h-9" onClick={onItemClick}>
+              <Link href="/auth/login" className="block">
+                <Button size="sm" className="w-full bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90" onClick={onItemClick}>
                   Sign In
                 </Button>
               </Link>
-              <Link href="/auth/register">
-                <Button size="sm" variant="outline" className="w-full h-9" onClick={onItemClick}>
+              <Link href="/auth/register" className="block">
+                <Button size="sm" variant="outline" className="w-full border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground bg-transparent" onClick={onItemClick}>
                   Create Account
                 </Button>
               </Link>
             </div>
-          </Card>
+          </div>
         )}
       </div>
     </>

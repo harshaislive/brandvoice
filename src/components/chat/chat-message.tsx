@@ -4,6 +4,7 @@ import { forwardRef } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 interface ChatMessage {
   id: string
@@ -25,60 +26,69 @@ interface ChatMessageProps {
 export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(
   ({ message, isStreaming, className }, ref) => {
     const isUser = message.role === 'user'
-    
+
     return (
       <div
         ref={ref}
         className={cn(
-          "flex gap-2 sm:gap-3 mb-4 sm:mb-6 px-1 sm:px-0",
+          "flex gap-4 mb-6 sm:mb-8 px-1 sm:px-0 group",
           isUser ? "justify-end" : "justify-start",
-          "chat-message", // Add class for mobile CSS targeting
           className
         )}
-        role="article"
-        aria-label={`${isUser ? 'Your' : 'AI'} message from ${new Date(message.timestamp).toLocaleTimeString()}`}
       >
         {!isUser && (
-          <Avatar 
-            className="shrink-0 w-8 h-8"
-            role="img"
-            aria-label="AI Assistant"
-          >
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-              AI
-            </AvatarFallback>
-          </Avatar>
+          <div className="shrink-0 h-9 w-9 rounded-full bg-primary flex items-center justify-center mt-1 shadow-sm">
+             <Image
+               src="/logo.png"
+               alt="AI"
+               width={18}
+               height={18}
+               className="invert brightness-0 saturate-100 object-contain filter invert-[1]"
+             />
+          </div>
         )}
-        
-        <div 
+
+        <div
           className={cn(
-            "max-w-[90%] sm:max-w-[85%] md:max-w-[75%] message-container",
-            "px-3 sm:px-4 py-3 sm:py-3 rounded-2xl sm:rounded-xl",
-            "transition-all duration-200 text-sm sm:text-base",
-            "overflow-hidden break-words", // Prevent content overflow
-            "touch-pan-y", // Allow vertical scrolling through messages
-            isUser 
-              ? "bg-foreground text-background shadow-sm" 
-              : "bg-muted/50 border border-border/50 shadow-sm"
+            "max-w-[90%] sm:max-w-[85%] md:max-w-[75%]",
+            "flex flex-col",
+            isUser ? "items-end" : "items-start"
           )}
         >
-          {message.isLoading ? (
-            <LoadingContent />
-          ) : message.content === '' && !isUser ? (
-            <SearchingContent isSearching={message.isSearching} />
-          ) : (
-            <MessageContent 
-              message={message} 
-              isUser={isUser} 
-              isStreaming={isStreaming} 
-            />
-          )}
-          
-          <MessageTimestamp 
-            timestamp={message.timestamp} 
-            isUser={isUser} 
-          />
+          <div className={cn(
+             "px-6 py-4 shadow-sm relative",
+             isUser 
+               ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm" 
+               : "bg-card border border-border/50 rounded-2xl rounded-tl-sm text-foreground"
+          )}>
+             {message.isLoading ? (
+                <LoadingContent />
+             ) : message.content === '' && !isUser ? (
+                <SearchingContent isSearching={message.isSearching} />
+             ) : (
+                <MessageContent
+                   message={message}
+                   isUser={isUser}
+                   isStreaming={isStreaming}
+                />
+             )}
+          </div>
+
+          <span className={cn(
+             "text-[10px] text-muted-foreground/60 mt-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity px-1",
+             isUser ? "text-right" : "text-left"
+          )}>
+             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
         </div>
+
+        {isUser && (
+           <Avatar className="shrink-0 h-9 w-9 mt-1 border border-border/50 shadow-sm">
+             <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-serif font-medium">
+               YOU
+             </AvatarFallback>
+           </Avatar>
+        )}
       </div>
     )
   }
@@ -88,41 +98,35 @@ ChatMessage.displayName = 'ChatMessage'
 
 function LoadingContent() {
   return (
-    <div className="space-y-3" role="status" aria-label="AI is thinking">
-      <div className="flex items-center gap-2">
-        <div className="flex space-x-1">
-          <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-          <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-          <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
-        </div>
-        <span className="text-sm font-medium text-muted-foreground">Thinking...</span>
-      </div>
+    <div className="flex items-center gap-3 min-w-[100px]">
+       <span className="text-xs font-medium text-muted-foreground">Thinking</span>
+       <div className="flex space-x-1">
+          <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce [animation-delay:-0.3s] opacity-50"></div>
+          <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce [animation-delay:-0.15s] opacity-50"></div>
+          <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce opacity-50"></div>
+       </div>
     </div>
   )
 }
 
 function SearchingContent({ isSearching }: { isSearching?: boolean }) {
   return (
-    <div className="space-y-3" role="status" aria-label={isSearching ? "Searching the web" : "Loading"}>
+    <div className="space-y-3">
       {isSearching && (
-        <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-          </div>
-          <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Searching the web...</span>
+        <div className="flex items-center gap-3">
+           <div className="h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+           <span className="text-sm text-blue-700 font-medium">Searching the web...</span>
         </div>
       )}
     </div>
   )
 }
 
-function MessageContent({ 
-  message, 
-  isUser, 
-  isStreaming 
-}: { 
+function MessageContent({
+  message,
+  isUser,
+  isStreaming
+}: {
   message: ChatMessage
   isUser: boolean
   isStreaming?: boolean
@@ -130,61 +134,26 @@ function MessageContent({
   return (
     <div className="relative">
       {isUser ? (
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">
+        <p className="whitespace-pre-wrap text-base leading-relaxed font-sans">
           {message.content}
         </p>
       ) : (
-        <MarkdownRenderer 
+        <MarkdownRenderer
           content={message.content}
-          className="text-sm leading-relaxed"
+          className="text-base leading-relaxed font-sans prose-neutral prose-p:leading-relaxed prose-headings:font-serif prose-headings:font-medium"
         />
       )}
-      
+
       {!isUser && isStreaming && message.content && !message.isSearching && (
-        <span 
-          className="inline-block w-2 h-4 bg-foreground/60 animate-pulse ml-1 align-baseline"
-          aria-label="AI is typing"
-        >
-          <div className="w-0.5 h-4 bg-current animate-pulse"></div>
-        </span>
+        <span className="inline-block w-1.5 h-4 bg-primary/40 animate-pulse ml-1 align-middle" />
       )}
-      
+
       {message.isSearching && (
-        <div 
-          className="flex items-center gap-2 mt-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded border border-blue-200 dark:border-blue-800"
-          role="status"
-          aria-label="Searching the web"
-        >
-          <div 
-            className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"
-            aria-hidden="true"
-          />
-          <span className="text-xs text-blue-600 dark:text-blue-400">
-            🔍 Searching the web...
-          </span>
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/10">
+           <div className="h-3 w-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+           <span className="text-xs text-blue-600 font-medium">Searching updates...</span>
         </div>
       )}
     </div>
-  )
-}
-
-function MessageTimestamp({ timestamp, isUser }: { timestamp: string; isUser: boolean }) {
-  const timeString = new Date(timestamp).toLocaleTimeString([], { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  })
-  
-  return (
-    <p 
-      className={cn(
-        "text-xs mt-2",
-        isUser 
-          ? "text-primary-foreground/70" 
-          : "text-muted-foreground"
-      )}
-      aria-label={`Message sent at ${timeString}`}
-    >
-      {timeString}
-    </p>
   )
 }

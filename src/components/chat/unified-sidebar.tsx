@@ -184,7 +184,6 @@ export function UnifiedSidebar({
         className
       )} 
       style={{ 
-        fontFamily: 'ABC Arizona Sans, system-ui, sans-serif',
         '--chat-sidebar-bg': designTokens.chat.sidebar.colors.background,
         '--chat-sidebar-text': designTokens.chat.sidebar.colors.text,
       } as React.CSSProperties}

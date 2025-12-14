@@ -16,6 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
+import { Label } from '@/components/ui/label'
 import {
   Form,
   FormControl,
@@ -26,7 +27,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from 'sonner'
-import { Settings, Brain, CheckCircle, AlertCircle, Save, RotateCcw, ChevronDown, ChevronRight, Copy, Zap, Code2, Lightbulb, Lock, Unlock, Hash, Play, Mail, MessageSquare, Loader2 } from 'lucide-react'
+import { Settings, Brain, CheckCircle, AlertCircle, Save, RotateCcw, ChevronDown, ChevronRight, Copy, Zap, Code2, Lightbulb, Lock, Unlock, Hash, Play, Mail, MessageSquare, Loader2, Target, Leaf, Gem } from 'lucide-react'
 
 const promptSettingsSchema = z.object({
   'prompts.main': z.string().min(10, 'Main prompt must be at least 10 characters'),
@@ -40,9 +41,9 @@ const DEFAULT_PROMPTS = {
   'prompts.main': `You are Beforest's Brand Voice AI Assistant. Your role is to transform content to match our authentic, warm, and premium brand voice.
 
 Brand Voice Principles:
-🎯 Authentic & Genuine: Honest, transparent communication without corporate jargon
-🌱 Warm & Approachable: Friendly, welcoming tone that's accessible to everyone
-💎 Premium without Pretension: High quality standards while staying humble and grounded
+- Authentic & Genuine: Honest, transparent communication without corporate jargon
+- Warm & Approachable: Friendly, welcoming tone that's accessible to everyone
+- Premium without Pretension: High quality standards while staying humble and grounded
 
 Always maintain these principles while adapting tone for the specific content type and target audience.`,
 
@@ -81,12 +82,8 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [activeTab, setActiveTab] = useState('main')
-  const [previewMode, setPreviewMode] = useState(true) // Always start in preview
+  const [previewMode, setPreviewMode] = useState(true)
   const [isUsingDefaults, setIsUsingDefaults] = useState(false)
-  const [expandedSections, setExpandedSections] = useState({
-    variables: false,
-    guidelines: false
-  })
   const [showPasscodeDialog, setShowPasscodeDialog] = useState(false)
   const [passcode, setPasscode] = useState('')
   const [showCommandPalette, setShowCommandPalette] = useState(false)
@@ -117,13 +114,11 @@ export default function SettingsPage() {
         const data = await response.json()
         const settings = data.settings || {}
         
-        // Check if we have any custom prompts or using defaults
         const hasCustomPrompts = Object.keys(settings).length > 0 && 
           (settings['prompts.main'] || settings['prompts.transform'] || settings['prompts.justification'])
         
         setIsUsingDefaults(!hasCustomPrompts)
         
-        // Map settings to form values
         form.reset({
           'prompts.main': settings['prompts.main'] || DEFAULT_PROMPTS['prompts.main'],
           'prompts.transform': settings['prompts.transform'] || DEFAULT_PROMPTS['prompts.transform'],
@@ -133,17 +128,10 @@ export default function SettingsPage() {
         if (data.lastUpdated && hasCustomPrompts) {
           setLastSaved(new Date(data.lastUpdated))
         }
-        
-        if (!hasCustomPrompts) {
-          toast.info('No custom prompts found. Using default prompts.')
-        }
-      } else {
-        throw new Error('Failed to load settings')
       }
     } catch (error) {
       console.error('Failed to load settings:', error)
       setIsUsingDefaults(true)
-      toast.error('Failed to load settings from database. Using defaults.')
       form.reset(DEFAULT_PROMPTS)
     } finally {
       setIsLoading(false)
@@ -166,66 +154,17 @@ export default function SettingsPage() {
       if (response.ok) {
         setLastSaved(new Date())
         setIsUsingDefaults(false)
-        toast.success('System prompts saved to database successfully!')
-        // Reload settings from database to ensure consistency
+        toast.success('System prompts saved successfully!')
         await loadSettings()
       } else {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to save settings')
+        throw new Error('Failed to save settings')
       }
     } catch (error) {
-      console.error('Save settings error:', error)
-      toast.error('Failed to save settings to database')
+      toast.error('Failed to save settings')
     } finally {
       setIsSaving(false)
     }
   }
-
-  const resetSinglePrompt = (key: keyof PromptSettingsForm) => {
-    // @ts-expect-error - Form library type issues
-    form.setValue(key, DEFAULT_PROMPTS[key])
-    toast.success('Prompt reset to default')
-  }
-
-  const copyPrompt = (content: string) => {
-    navigator.clipboard.writeText(content)
-    toast.success('Copied to clipboard')
-  }
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
-  }
-
-  const handleEditModeToggle = () => {
-    if (previewMode) {
-      setShowPasscodeDialog(true)
-    } else {
-      setPreviewMode(true)
-    }
-  }
-
-  const verifyPasscode = () => {
-    // In production, you'd get this from process.env.PASS_CODE
-    const correctPasscode = process.env.NEXT_PUBLIC_PASS_CODE || '123456'
-    
-    if (passcode === correctPasscode) {
-      setPreviewMode(false)
-      setShowPasscodeDialog(false)
-      setPasscode('')
-      toast.success('Edit mode enabled')
-    } else {
-      toast.error('Invalid passcode')
-      setPasscode('')
-    }
-  }
-
-  const templateVariables = [
-    { name: '{original_content}', description: "User's input content for transformation" },
-    { name: '{content_type}', description: 'Content category (marketing, email, etc.)' },
-    { name: '{target_audience}', description: 'Intended audience for the content' },
-    { name: '{additional_context}', description: 'Optional user-provided context' },
-    { name: '{transformed_content}', description: 'Final result (justification only)' }
-  ]
 
   const insertVariable = (variable: string) => {
     if (currentTextarea) {
@@ -233,19 +172,11 @@ export default function SettingsPage() {
       const end = currentTextarea.selectionEnd
       const text = currentTextarea.value
       const newText = text.substring(0, start) + variable + text.substring(end)
-      
-      // Update the form value
       const fieldName = promptTabs.find(t => t.key === activeTab)?.field
       if (fieldName) {
         // @ts-expect-error - Form library type issues
         form.setValue(fieldName, newText)
       }
-      
-      // Focus back and set cursor position
-      setTimeout(() => {
-        currentTextarea.focus()
-        currentTextarea.setSelectionRange(start + variable.length, start + variable.length)
-      }, 0)
     }
     setShowCommandPalette(false)
     setCommandQuery('')
@@ -272,26 +203,41 @@ export default function SettingsPage() {
           original_content: testInput,
           content_type: testContentType,
           target_audience: testContentType === 'email' ? 'professional contacts' : 'casual messaging',
-          additional_context: `Testing prompts from settings page - optimize for ${testContentType} format and best practices`,
+          additional_context: `Testing prompts from settings page`,
           system_prompt: prompts['prompts.main'],
           transform_prompt: prompts['prompts.transform']
         })
       })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
-      }
-
+      if (!response.ok) throw new Error()
       const data = await response.json()
       setTestOutput(data.transformed_content || 'No output received')
-      toast.success(`Prompts tested successfully! (${data.processing_time_ms}ms)`)
-    } catch (error) {
-      console.error('Test prompts error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      toast.error(`Failed to test prompts: ${errorMessage}`)
+      toast.success(`Test completed (${data.processing_time_ms}ms)`)
+    } catch {
+      toast.error(`Failed to test prompts`)
     } finally {
       setIsTestLoading(false)
+    }
+  }
+
+  const handleEditModeToggle = () => {
+    if (previewMode) {
+      setShowPasscodeDialog(true)
+    } else {
+      setPreviewMode(true)
+    }
+  }
+  
+  const verifyPasscode = () => {
+    const correctPasscode = process.env.NEXT_PUBLIC_PASS_CODE || '123456'
+    if (passcode === correctPasscode) {
+      setPreviewMode(false)
+      setShowPasscodeDialog(false)
+      setPasscode('')
+      toast.success('Edit mode enabled')
+    } else {
+      toast.error('Invalid passcode')
+      setPasscode('')
     }
   }
 
@@ -299,94 +245,69 @@ export default function SettingsPage() {
     loadSettings()
   }, [loadSettings])
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-        <Navigation />
-        <main className="pt-16 lg:pt-0 lg:ml-64 p-4 sm:p-6">
-          <div className="max-w-7xl mx-auto space-y-8">
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-12 w-12 rounded-lg" />
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-64" />
-                <Skeleton className="h-4 w-96" />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-1">
-                <Skeleton className="h-[400px] w-full rounded-xl" />
-              </div>
-              <div className="lg:col-span-3">
-                <Skeleton className="h-[500px] w-full rounded-xl" />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Skeleton className="h-[200px] w-full rounded-xl" />
-              <Skeleton className="h-[200px] w-full rounded-xl" />
-            </div>
-          </div>
-        </main>
-      </div>
-    )
-  }
-
   const promptTabs = [
     {
       key: 'main',
       label: 'System Core',
       icon: Brain,
-      description: 'Main AI system prompt that defines brand voice behavior',
+      description: 'Main AI behavior',
       field: 'prompts.main' as keyof PromptSettingsForm,
-      color: 'text-purple-600 bg-purple-100',
-      category: 'Foundation'
     },
     {
       key: 'transform',
-      label: 'Transform Engine',
+      label: 'Transformation',
       icon: Zap,
-      description: 'Template for content transformation with dynamic variables',
+      description: 'Content rewrite logic',
       field: 'prompts.transform' as keyof PromptSettingsForm,
-      color: 'text-blue-600 bg-blue-100',
-      category: 'Processing'
     },
     {
       key: 'justification',
-      label: 'Analysis Core',
+      label: 'Analysis',
       icon: Code2,
-      description: 'Framework for transformation analysis and quality assessment',
+      description: 'Quality scoring logic',
       field: 'prompts.justification' as keyof PromptSettingsForm,
-      color: 'text-green-600 bg-green-100',
-      category: 'Analytics'
     }
   ]
 
+  const templateVariables = [
+    { name: '{original_content}', description: "User's input content" },
+    { name: '{content_type}', description: 'Content category' },
+    { name: '{target_audience}', description: 'Intended audience' },
+    { name: '{additional_context}', description: 'Optional context' },
+  ]
+
+  if (isLoading) {
+    return (
+       <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="pt-16 lg:pt-0 lg:ml-64 p-6 sm:p-12 flex items-center justify-center">
+           <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground font-serif">Loading studio configuration...</p>
+           </div>
+        </main>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-16 lg:pt-0 lg:ml-64 p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header Section */}
-          <div className="mb-8">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                  <Settings className="h-10 w-10 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h1 className="text-4xl font-serif font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                    AI Prompt Studio
-                  </h1>
-                  <p className="text-lg text-muted-foreground max-w-2xl">
-                    Configure the intelligent prompts that power Beforest&apos;s brand voice transformation engine
-                  </p>
-                </div>
+      <main className="pt-16 lg:pt-0 lg:ml-64 min-h-screen flex flex-col">
+        {/* Header */}
+         <div className="px-6 py-8 sm:px-12 border-b border-border/40 bg-background/50 backdrop-blur-sm sticky top-0 z-10">
+           <div className="max-w-6xl mx-auto flex items-end justify-between">
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-serif font-light text-foreground mb-2">
+                  Configuration
+                </h1>
+                <p className="text-muted-foreground font-light text-sm">
+                  System Prompts & Behavior
+                </p>
               </div>
               
-              <div className="flex items-center gap-3">
-                <Button
+               <Button
                   variant="outline"
                   size="sm"
                   onClick={handleEditModeToggle}
@@ -394,408 +315,182 @@ export default function SettingsPage() {
                 >
                   {previewMode ? (
                     <>
-                      <Lock className="h-4 w-4" />
-                      Enable Edit Mode
+                      <Lock className="h-3 w-3" />
+                      Locked
                     </>
                   ) : (
                     <>
-                      <Unlock className="h-4 w-4" />
-                      Preview Mode
+                      <Unlock className="h-3 w-3" />
+                      Unlocked
                     </>
                   )}
                 </Button>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between p-4 bg-card/50 rounded-xl border border-border/50">
-              <div className="flex items-center gap-3">
-                {isUsingDefaults ? (
-                  <>
-                    <AlertCircle className="h-5 w-5 text-amber-600" />
-                    <span className="text-sm font-medium text-foreground">Using default prompts</span>
-                  </>
-                ) : lastSaved ? (
-                  <>
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="text-sm font-medium text-foreground">Last saved: {lastSaved.toLocaleString()}</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm font-medium text-foreground">Custom prompts loaded</span>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {isUsingDefaults ? (
-                  <Badge variant="outline" className="text-xs text-amber-700 border-amber-200">Default Mode</Badge>
-                ) : (
-                  <Badge variant="secondary" className="text-xs">Database Mode</Badge>
-                )}
-                <Badge variant="outline" className="text-xs">v4.2.1</Badge>
-              </div>
-            </div>
-          </div>
+           </div>
+        </div>
 
-          {/* Alert Section */}
-          <Alert className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 shadow-sm">
-            <AlertCircle className="h-5 w-5 text-amber-600" />
-            <AlertTitle className="text-amber-800 font-semibold">Production Environment</AlertTitle>
-            <AlertDescription className="text-amber-700 mt-1">
-              These prompts control the AI&apos;s behavior in production. Changes affect all transformations immediately.
-              <strong className="block mt-1">Always test in development before applying to production.</strong>
-            </AlertDescription>
-          </Alert>
-
-          {/* Main Content - Mobile Responsive */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="rounded-xl border border-border/50 bg-card/30">
-            <div className="lg:grid lg:grid-cols-[300px,1fr]">
-              {/* Mobile Tab List */}
-              <div className="lg:hidden border-b bg-muted/50">
-                <TabsList className="h-auto p-2 bg-transparent justify-start w-full overflow-x-auto">
-                  {promptTabs.map((tab) => (
-                    <TabsTrigger 
-                      key={tab.key} 
-                      value={tab.key}
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3 py-2 text-xs whitespace-nowrap"
-                    >
-                      <tab.icon className="h-3 w-3 mr-1" />
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-
-              {/* Desktop Sidebar */}
-              <div className="hidden lg:block p-6 border-r space-y-4">
-                <div className="space-y-1 mb-6">
-                  <h3 className="font-semibold text-lg">Prompt Modules</h3>
-                  <p className="text-sm text-muted-foreground">Select a prompt to configure</p>
-                </div>
-                
-                <TabsList className="h-auto flex-col w-full bg-transparent p-0 space-y-3">
-                  {promptTabs.map((tab) => (
-                    <TabsTrigger 
-                      key={tab.key} 
-                      value={tab.key}
-                      className="w-full p-4 rounded-lg border transition-all text-left group justify-start h-auto data-[state=active]:border-primary data-[state=active]:bg-primary/5 data-[state=active]:shadow-sm hover:border-primary/50 hover:bg-accent/50"
-                    >
-                      <div className="flex items-start gap-3 w-full">
-                        <div className={`p-2 rounded-md ${tab.color} transition-colors`}>
-                          <tab.icon className="h-4 w-4" />
-                        </div>
-                        <div className="space-y-1 flex-1 text-left">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-sm">{tab.label}</h4>
-                            <Badge variant="outline" className="text-xs">{tab.category}</Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground">{tab.description}</p>
-                        </div>
-                      </div>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
+        <div className="flex-1 overflow-y-auto">
+           <div className="max-w-6xl mx-auto p-6 sm:p-12 space-y-12">
               
-              {/* Main Content */}
-              <div className="flex-1">
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="h-full flex flex-col">
-                    {promptTabs.map((tab) => (
-                      <TabsContent key={tab.key} value={tab.key} className="flex-1 flex flex-col mt-0">
-                        <div className="flex-1 p-4 sm:p-6 space-y-4 sm:space-y-6">
-                          {/* Editor Header */}
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b gap-4">
-                            <div className="flex items-center gap-3 sm:gap-4">
-                              <div className={`p-2 sm:p-3 rounded-lg ${tab.color}`}>
-                                <tab.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                              </div>
-                              <div>
-                                <h2 className="text-xl sm:text-2xl font-bold">{tab.label}</h2>
-                                <p className="text-sm text-muted-foreground">{tab.description}</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => copyPrompt(form.getValues()[tab.field])}
-                                className="text-xs"
-                              >
-                                <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                                Copy
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => resetSinglePrompt(tab.field)}
-                                className="text-xs"
-                              >
-                                <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                                Reset
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* Editor Content */}
-                          <FormField
-                            control={form.control}
-                            name={tab.field}
-                            render={({ field }) => (
-                              <FormItem className="space-y-3">
-                                <FormLabel className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                                  <Lightbulb className="h-4 w-4" />
-                                  Prompt Configuration
-                                </FormLabel>
-                                
-                                {!previewMode ? (
-                                  <FormControl>
-                                    <div className="relative">
-                                      <Textarea
-                                        {...field}
-                                        ref={(el) => {
-                                          if (el) setCurrentTextarea(el)
-                                          field.ref(el)
-                                        }}
-                                        onKeyDown={(e) => {
-                                          if (e.key === '/' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-                                            e.preventDefault()
-                                            setShowCommandPalette(true)
-                                          }
-                                        }}
-                                        placeholder={`Configure your ${tab.label.toLowerCase()} prompt... (Press '/' for variables)`}
-                                        className="h-[200px] sm:h-[280px] font-mono text-sm resize-none border-0 bg-muted/30 focus:bg-background transition-colors pr-4 sm:pr-48"
-                                      />
-                                      <div className="hidden sm:flex absolute top-3 right-3 flex-col gap-1 items-end">
-                                        <div className="flex gap-1">
-                                          <Badge variant="secondary" className="font-mono text-xs">
-                                            {(field.value as string).length} chars
-                                          </Badge>
-                                          <Badge variant="secondary" className="font-mono text-xs">
-                                            {(field.value as string).split('\n').length} lines
-                                          </Badge>
-                                        </div>
-                                        <Badge variant="outline" className="font-mono text-xs text-blue-600">
-                                          <Hash className="h-3 w-3 mr-1" />
-                                          Press / for variables
-                                        </Badge>
-                                      </div>
-                                      <div className="flex sm:hidden justify-between mt-2">
-                                        <div className="flex gap-2">
-                                          <Badge variant="secondary" className="font-mono text-xs">
-                                            {(field.value as string).length} chars
-                                          </Badge>
-                                          <Badge variant="secondary" className="font-mono text-xs">
-                                            {(field.value as string).split('\n').length} lines
-                                          </Badge>
-                                        </div>
-                                        <Badge variant="outline" className="font-mono text-xs text-blue-600">
-                                          <Hash className="h-3 w-3 mr-1" />
-                                          Press / for variables
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  </FormControl>
-                                ) : (
-                                  <div className="h-[200px] sm:h-[280px] p-4 bg-muted/30 rounded-lg border border-dashed border-border overflow-y-auto">
-                                    <pre className="whitespace-pre-wrap text-sm text-foreground font-mono leading-relaxed">
-                                      {field.value}
-                                    </pre>
-                                  </div>
-                                )}
-                                
-                                <FormDescription className="text-sm">
-                                  {tab.key === 'main' && 'Core AI system prompt that defines brand voice behavior'}
-                                  {tab.key === 'transform' && 'Template for content transformation with {placeholder} variables'}
-                                  {tab.key === 'justification' && 'Framework for transformation analysis and quality assessment'}
-                                </FormDescription>
-                                
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        
-                        {/* Footer Actions */}
-                        <div className="border-t bg-card/50 p-4 sm:p-6">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                                <span className="text-xs sm:text-sm">Auto-save enabled</span>
-                              </div>
-                              <div className="h-4 w-px bg-border"></div>
-                              <span className="text-xs sm:text-sm">Last change: {new Date().toLocaleTimeString()}</span>
-                            </div>
-                            
-                            <div className="flex gap-3 w-full sm:w-auto">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => form.reset(DEFAULT_PROMPTS)}
-                                className="gap-2 flex-1 sm:flex-none text-xs sm:text-sm"
-                                size="sm"
-                              >
-                                <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4" />
-                                Discard Changes
-                              </Button>
-                              
-                              <Button
-                                type="submit"
-                                disabled={isSaving}
-                                className="gap-2 min-w-[120px] sm:min-w-[140px] bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary flex-1 sm:flex-none text-xs sm:text-sm"
-                                size="sm"
-                              >
-                                {isSaving ? (
-                                  <>
-                                    <Settings className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                                    Deploying...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Save className="h-3 w-3 sm:h-4 sm:w-4" />
-                                    Deploy to Production
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </TabsContent>
-                    ))}
-                  </form>
-                </Form>
+              {/* Status Bar */}
+              <div className="flex items-center justify-between p-4 bg-secondary/10 rounded-lg border border-border/50">
+                 <div className="flex items-center gap-3">
+                    {isUsingDefaults ? (
+                       <AlertCircle className="h-4 w-4 text-amber-600" />
+                    ) : (
+                       <CheckCircle className="h-4 w-4 text-green-600" />
+                    )}
+                    <span className="text-sm font-medium">
+                       {isUsingDefaults ? 'Using Default System Prompts' : 'Custom Prompts Active'}
+                    </span>
+                 </div>
+                 {lastSaved && (
+                    <span className="text-xs text-muted-foreground">Updated {lastSaved.toLocaleDateString()}</span>
+                 )}
               </div>
-            </div>
-          </Tabs>
 
-          {/* Test Prompts Section */}
-          <Card className="mt-8 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-900">
-                <Play className="h-5 w-5" />
-                Test Your Prompts
-              </CardTitle>
-              <p className="text-sm text-blue-700">
-                Test how your configured prompts transform content for different formats
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Input Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h4 className="font-medium text-blue-900">Input Content</h4>
-                    <div className="flex gap-1">
-                      <Button
-                        variant={testContentType === 'email' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setTestContentType('email')}
-                        className="gap-2"
-                      >
-                        <Mail className="h-3 w-3" />
-                        Email
-                      </Button>
-                      <Button
-                        variant={testContentType === 'whatsapp' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setTestContentType('whatsapp')}
-                        className="gap-2"
-                      >
-                        <MessageSquare className="h-3 w-3" />
-                        WhatsApp
-                      </Button>
+              {/* Editor Section */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+                 <div className="flex flex-col md:flex-row gap-8">
+                    {/* Sidebar Tabs */}
+                    <TabsList className="flex flex-col h-auto bg-transparent space-y-2 w-full md:w-64 p-0">
+                       {promptTabs.map(tab => (
+                          <TabsTrigger 
+                             key={tab.key} 
+                             value={tab.key}
+                             className="w-full justify-start px-4 py-3 h-auto border border-transparent data-[state=active]:bg-secondary/10 data-[state=active]:border-border/50 rounded-lg transition-all"
+                          >
+                             <div className="flex items-center gap-3">
+                                <tab.icon className="h-4 w-4 opacity-70" />
+                                <div className="text-left">
+                                   <div className="font-medium text-sm">{tab.label}</div>
+                                   <div className="text-xs text-muted-foreground font-normal opacity-70">{tab.description}</div>
+                                </div>
+                             </div>
+                          </TabsTrigger>
+                       ))}
+                    </TabsList>
+
+                    {/* Editor Content */}
+                    <div className="flex-1 min-w-0">
+                       <Form {...form}>
+                          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                             {promptTabs.map(tab => (
+                                <TabsContent key={tab.key} value={tab.key} className="mt-0 space-y-4">
+                                   <FormField
+                                      control={form.control}
+                                      name={tab.field}
+                                      render={({ field }) => (
+                                         <FormItem>
+                                            <div className="relative">
+                                               {!previewMode ? (
+                                                  <div className="group relative">
+                                                     <Textarea
+                                                        {...field}
+                                                        ref={(el) => {
+                                                           if (el) setCurrentTextarea(el)
+                                                           field.ref(el)
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                          if (e.key === '/' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+                                                            e.preventDefault()
+                                                            setShowCommandPalette(true)
+                                                          }
+                                                        }}
+                                                        className="font-mono text-sm min-h-[400px] leading-relaxed p-6 bg-background border-border/50 focus:ring-1 focus:ring-primary/20 resize-y"
+                                                        placeholder="Enter prompt configuration..."
+                                                     />
+                                                     <div className="absolute top-4 right-4 text-xs text-muted-foreground opacity-50">
+                                                        Press &apos;/&apos; for variables
+                                                     </div>
+                                                  </div>
+                                               ) : (
+                                                  <div className="min-h-[400px] p-6 bg-secondary/5 rounded-lg border border-border/30 overflow-y-auto">
+                                                     <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-muted-foreground">
+                                                        {field.value}
+                                                     </pre>
+                                                  </div>
+                                               )}
+                                            </div>
+                                         </FormItem>
+                                      )}
+                                   />
+                                   
+                                   {!previewMode && (
+                                      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/30">
+                                         <Button type="button" variant="ghost" onClick={() => form.reset(DEFAULT_PROMPTS)}>Discard</Button>
+                                         <Button type="submit" disabled={isSaving}>
+                                            {isSaving ? 'Saving...' : 'Save Configuration'}
+                                         </Button>
+                                      </div>
+                                   )}
+                                </TabsContent>
+                             ))}
+                          </form>
+                       </Form>
                     </div>
-                  </div>
-                  
-                  <Textarea
-                    placeholder={`Enter text to transform for ${testContentType}...`}
-                    value={testInput}
-                    onChange={(e) => setTestInput(e.target.value)}
-                    className="h-[200px] resize-none"
-                  />
-                  
-                  <Button
-                    onClick={testPrompts}
-                    disabled={isTestLoading || !testInput.trim()}
-                    className="w-full gap-2"
-                  >
-                    {isTestLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Testing Prompts...
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4" />
-                        Test Transformation
-                      </>
-                    )}
-                  </Button>
-                </div>
+                 </div>
+              </Tabs>
 
-                {/* Output Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-blue-900">Transformed Output</h4>
-                    {testOutput && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          navigator.clipboard.writeText(testOutput)
-                          toast.success('Output copied to clipboard')
-                        }}
-                        className="gap-2"
-                      >
-                        <Copy className="h-3 w-3" />
-                        Copy
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="h-[200px] p-4 bg-white/60 rounded-lg border border-blue-200/50 overflow-y-auto">
-                    {testOutput ? (
-                      <pre className="whitespace-pre-wrap text-sm text-blue-900 font-mono leading-relaxed">
-                        {testOutput}
-                      </pre>
-                    ) : (
-                      <p className="text-sm text-blue-600/60 italic">
-                        Output will appear here after testing...
-                      </p>
-                    )}
-                  </div>
-                </div>
+              {/* Testing Playground */}
+              <div className="border-t border-border/40 pt-12">
+                 <h2 className="text-2xl font-serif font-light mb-6">Playground</h2>
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                       <Label className="text-xs text-muted-foreground">Test Input</Label>
+                       <Textarea 
+                          value={testInput}
+                          onChange={(e) => setTestInput(e.target.value)}
+                          placeholder="Enter text to test your current prompts..."
+                          className="min-h-[200px] bg-background border-border/50"
+                       />
+                       <div className="flex gap-2">
+                          <Button 
+                             onClick={testPrompts} 
+                             disabled={isTestLoading || !testInput}
+                             className="w-full"
+                             variant="secondary"
+                          >
+                             {isTestLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                             ) : (
+                                <Play className="h-4 w-4 mr-2" />
+                             )}
+                             Run Test
+                          </Button>
+                       </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                       <Label className="text-xs text-muted-foreground">Output</Label>
+                       <div className="min-h-[200px] p-4 rounded-md border border-border/50 bg-secondary/5 text-sm font-mono whitespace-pre-wrap text-muted-foreground">
+                          {testOutput || "Test output will appear here..."}
+                       </div>
+                    </div>
+                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+           </div>
+        </div>
 
           {/* Compact Reference Sections */}
           <div className="mt-6 space-y-3">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Template Variables */}
-              <Collapsible open={expandedSections.variables} onOpenChange={() => toggleSection('variables')}>
-                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
+              <Collapsible>
+                <Card className="bg-blue-50/50 border-blue-200/50 shadow-sm">
                   <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-blue-100/50 transition-colors">
-                      <CardTitle className="flex items-center justify-between text-blue-900">
+                    <CardHeader className="cursor-pointer hover:bg-blue-100/50 transition-colors p-4">
+                      <CardTitle className="flex items-center justify-between text-blue-900 text-sm">
                         <div className="flex items-center gap-2">
-                          <Code2 className="h-5 w-5" />
+                          <Code2 className="h-4 w-4" />
                           Template Variables
                         </div>
-                        {expandedSections.variables ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
+                        <ChevronDown className="h-4 w-4" />
                       </CardTitle>
                     </CardHeader>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <CardContent className="pt-0 text-sm text-blue-800">
+                    <CardContent className="pt-0 text-sm text-blue-800 p-4">
                       <div className="grid grid-cols-1 gap-2">
                         {[
                           { var: '{original_content}', desc: "User's input content" },
@@ -818,33 +513,29 @@ export default function SettingsPage() {
               </Collapsible>
 
               {/* Brand Guidelines */}
-              <Collapsible open={expandedSections.guidelines} onOpenChange={() => toggleSection('guidelines')}>
-                <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-sm">
+              <Collapsible>
+                <Card className="bg-green-50/50 border-green-200/50 shadow-sm">
                   <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-green-100/50 transition-colors">
-                      <CardTitle className="flex items-center justify-between text-green-900">
+                    <CardHeader className="cursor-pointer hover:bg-green-100/50 transition-colors p-4">
+                      <CardTitle className="flex items-center justify-between text-green-900 text-sm">
                         <div className="flex items-center gap-2">
-                          <Brain className="h-5 w-5" />
+                          <Brain className="h-4 w-4" />
                           Brand Voice Guidelines
                         </div>
-                        {expandedSections.guidelines ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
+                        <ChevronDown className="h-4 w-4" />
                       </CardTitle>
                     </CardHeader>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <CardContent className="pt-0 text-sm text-green-800">
+                    <CardContent className="pt-0 text-sm text-green-800 p-4">
                       <div className="space-y-2">
                         {[
-                          { icon: '🎯', title: 'Authentic & Genuine', desc: 'Honest, transparent communication' },
-                          { icon: '🌱', title: 'Warm & Approachable', desc: 'Friendly, welcoming tone' },
-                          { icon: '💎', title: 'Premium without Pretension', desc: 'Quality with humility' }
+                          { Icon: Target, title: 'Authentic & Genuine', desc: 'Honest, transparent communication' },
+                          { Icon: Leaf, title: 'Warm & Approachable', desc: 'Friendly, welcoming tone' },
+                          { Icon: Gem, title: 'Premium without Pretension', desc: 'Quality with humility' }
                         ].map((principle, idx) => (
                           <div key={idx} className="flex items-center gap-3 p-2 bg-white/60 rounded border border-green-200/50">
-                            <span className="text-base">{principle.icon}</span>
+                            <principle.Icon className="h-4 w-4 text-green-700" />
                             <div>
                               <h4 className="font-medium text-green-900 text-xs">{principle.title}</h4>
                               <p className="text-xs text-green-700">{principle.desc}</p>
@@ -858,22 +549,18 @@ export default function SettingsPage() {
               </Collapsible>
             </div>
           </div>
-          
-          {/* Passcode Dialog */}
-          <Dialog open={showPasscodeDialog} onOpenChange={setShowPasscodeDialog}>
+
+        {/* Dialogs */}
+        <Dialog open={showPasscodeDialog} onOpenChange={setShowPasscodeDialog}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Lock className="h-5 w-5" />
-                  Enter Passcode
-                </DialogTitle>
+                <DialogTitle className="font-serif">Enter Passcode</DialogTitle>
                 <DialogDescription>
-                  Enter the passcode to enable edit mode for system prompts.
+                  Enter the system passcode to edit production prompts.
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex flex-col gap-4 py-4">
-                <div className="flex justify-center">
-                  <InputOTP
+              <div className="flex flex-col gap-4 py-4 items-center">
+                <InputOTP
                     maxLength={6}
                     value={passcode}
                     onChange={setPasscode}
@@ -888,52 +575,27 @@ export default function SettingsPage() {
                       <InputOTPSlot index={5} />
                     </InputOTPGroup>
                   </InputOTP>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => setShowPasscodeDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={verifyPasscode} disabled={passcode.length !== 6}>
-                    Verify
-                  </Button>
-                </div>
+                  <Button onClick={verifyPasscode} className="w-full">Verify Access</Button>
               </div>
             </DialogContent>
-          </Dialog>
+        </Dialog>
 
-          {/* Command Palette for Variables */}
-          <Dialog open={showCommandPalette} onOpenChange={setShowCommandPalette}>
-            <DialogContent className="sm:max-w-lg p-0">
+        <Dialog open={showCommandPalette} onOpenChange={setShowCommandPalette}>
+            <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
               <Command>
-                <CommandInput 
-                  placeholder="Search template variables..." 
-                  value={commandQuery}
-                  onValueChange={setCommandQuery}
-                />
+                <CommandInput placeholder="Search variables..." />
                 <CommandList>
                   <CommandEmpty>No variables found.</CommandEmpty>
-                  <CommandGroup heading="Template Variables">
-                    {templateVariables
-                      .filter(variable => 
-                        variable.name.toLowerCase().includes(commandQuery.toLowerCase()) ||
-                        variable.description.toLowerCase().includes(commandQuery.toLowerCase())
-                      )
-                      .map((variable) => (
+                  <CommandGroup heading="Available Variables">
+                    {templateVariables.map((variable) => (
                         <CommandItem
                           key={variable.name}
                           onSelect={() => insertVariable(variable.name)}
                           className="cursor-pointer"
                         >
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <Hash className="h-4 w-4 text-blue-600" />
-                              <code className="font-mono text-sm font-medium">
-                                {variable.name}
-                              </code>
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              {variable.description}
-                            </span>
+                            <span className="font-mono font-medium">{variable.name}</span>
+                            <span className="text-xs text-muted-foreground">{variable.description}</span>
                           </div>
                         </CommandItem>
                       ))
@@ -943,7 +605,7 @@ export default function SettingsPage() {
               </Command>
             </DialogContent>
           </Dialog>
-        </div>
+
       </main>
     </div>
   )

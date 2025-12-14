@@ -401,8 +401,8 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden">
-      <SidebarProvider>
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      <SidebarProvider defaultOpen={true}>
         <ChatErrorBoundary>
           <UnifiedSidebar
             conversations={conversations}
@@ -419,7 +419,7 @@ export default function ChatPage() {
         </ChatErrorBoundary>
         
         {/* Main Content Area with enhanced mobile layout */}
-        <SidebarInset className="flex flex-col h-[100dvh] overflow-hidden relative">
+        <SidebarInset className="flex flex-col h-full w-full overflow-hidden relative">
           <ChatHeader
             // @ts-expect-error - Type mismatch between interfaces
             activeConversation={activeConversation}
@@ -427,34 +427,34 @@ export default function ChatPage() {
           />
           
           {/* Messages container with mobile-optimized spacing */}
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 overflow-hidden relative flex flex-col">
             {activeConversation ? (
               <ChatErrorBoundary>
                 <ChatMessages
                   // @ts-expect-error - Type mismatch between local and component interfaces
                   messages={messages}
                   isLoading={isLoading}
-                  className="h-full"
+                  className="h-full w-full"
                 />
               </ChatErrorBoundary>
             ) : (
-              <EmptyChatState />
+              <EmptyChatState className="h-full w-full" />
             )}
           </div>
 
           {/* Fixed input area with safe area padding */}
-          <div className="flex-shrink-0 relative z-10">
+          <div className="flex-shrink-0 relative z-10 w-full">
             <ChatErrorBoundary>
               <ChatInput
                 value={newMessage}
                 onChange={setNewMessage}
                 onSend={sendMessage}
                 isLoading={isLoading}
-                enableWebSearch={enableWebSearch}
-                onWebSearchToggle={setEnableWebSearch}
+                // enableWebSearch={enableWebSearch}
+                // onWebSearchToggle={setEnableWebSearch}
                 userLocation={userLocation}
                 onLocationChange={setUserLocation}
-                className="pb-safe"
+                className="w-full"
               />
             </ChatErrorBoundary>
           </div>

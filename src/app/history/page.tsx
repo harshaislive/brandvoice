@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Navigation } from '@/components/layout/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/badge'
 import { BeforestTransformation } from '@/types/database'
 import { formatDistanceToNow } from 'date-fns'
 import { useAuth } from '@/contexts/auth-context'
+import { ChevronRight, Filter, Search, Copy, Star, RotateCcw } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 export default function HistoryPage() {
   const { isAuthenticated } = useAuth()
@@ -23,6 +26,7 @@ export default function HistoryPage() {
   })
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(true)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const fetchTransformations = useCallback(async (reset = false) => {
     if (!isAuthenticated) {
@@ -47,15 +51,10 @@ export default function HistoryPage() {
       })
       
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error('API Error:', errorText)
-        throw new Error(`Failed to fetch transformations: ${response.status}`)
+        throw new Error(`Failed to fetch transformations`)
       }
 
       const data = await response.json()
-      console.log('Received transformations:', data.transformations?.length || 0, 'records')
-      console.log('Total records in database:', data.total_count)
-      console.log('First transformation:', data.transformations?.[0])
       
       if (reset) {
         setTransformations(data.transformations || [])
@@ -88,223 +87,173 @@ export default function HistoryPage() {
      t.transformed_content.toLowerCase().includes(filters.search.toLowerCase()))
   )
 
-  const submitFeedback = async (id: string, feedback: number) => {
-    try {
-      const response = await fetch(`/api/transform/${id}/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feedback })
-      })
-      
-      if (response.ok) {
-        // Update local state
-        setTransformations(prev => 
-          prev.map(t => t.id === id ? { ...t, user_feedback: feedback } : t)
-        )
-      }
-    } catch (error) {
-      console.error('Failed to submit feedback:', error)
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success('Content copied to clipboard')
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-16 lg:pt-0 lg:ml-64 p-4 sm:p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-3xl font-serif font-bold text-primary mb-2">
-              Transformation History
-            </h1>
-            <p className="text-muted-foreground">
-              View and manage your brand voice transformations
-            </p>
-          </div>
+      <main className="pt-16 lg:pt-0 lg:ml-64 min-h-screen flex flex-col">
+        {/* Header */}
+        <div className="px-6 py-8 sm:px-12 border-b border-border/40">
+           <div className="max-w-6xl mx-auto space-y-4">
+              <h1 className="text-3xl sm:text-4xl font-serif font-light text-foreground">
+                History
+              </h1>
+              <p className="text-muted-foreground font-light text-sm">
+                History of Transformations
+              </p>
 
-          {/* Filters */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Filters</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <Input
-                  placeholder="Search content..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                />
-                <Select value={filters.content_type || "all"} onValueChange={(value) => handleFilterChange('content_type', value === "all" ? "" : value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Content Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="social">Social Media</SelectItem>
-                    <SelectItem value="blog">Blog</SelectItem>
-                    <SelectItem value="website">Website</SelectItem>
-                    <SelectItem value="product">Product</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={filters.target_audience || "all"} onValueChange={(value) => handleFilterChange('target_audience', value === "all" ? "" : value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Target Audience" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Audiences</SelectItem>
-                    <SelectItem value="customers">Customers</SelectItem>
-                    <SelectItem value="prospects">Prospects</SelectItem>
-                    <SelectItem value="partners">Partners</SelectItem>
-                    <SelectItem value="employees">Employees</SelectItem>
-                    <SelectItem value="investors">Investors</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setFilters({ content_type: '', target_audience: '', search: '' })}
-                >
-                  Clear Filters
-                </Button>
+              {/* Filters Bar */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                 <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search archive..."
+                      value={filters.search}
+                      onChange={(e) => handleFilterChange('search', e.target.value)}
+                      className="pl-9 bg-secondary/10 border-transparent hover:bg-secondary/20 focus:bg-background transition-colors h-10"
+                    />
+                 </div>
+                 <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
+                    <Select value={filters.content_type || "all"} onValueChange={(value) => handleFilterChange('content_type', value === "all" ? "" : value)}>
+                      <SelectTrigger className="w-[140px] h-10 border-transparent bg-secondary/10 hover:bg-secondary/20">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="marketing">Marketing</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="social">Social</SelectItem>
+                        <SelectItem value="blog">Blog</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => setFilters({ content_type: '', target_audience: '', search: '' })}
+                      className="h-10 w-10 shrink-0"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                 </div>
               </div>
-            </CardContent>
-          </Card>
+           </div>
+        </div>
 
-          {/* Results */}
-          {error && (
-            <Card className="mb-6 border-destructive">
-              <CardContent className="pt-6">
-                <p className="text-destructive">{error}</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-2"
-                  onClick={() => fetchTransformations(true)}
-                >
-                  Retry
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {loading && transformations.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading transformations...</p>
-            </div>
-          ) : filteredTransformations.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No transformations found</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredTransformations.map((transformation) => (
-                <Card key={transformation.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="secondary">
-                            {transformation.content_type}
-                          </Badge>
-                          <Badge variant="outline">
-                            {transformation.target_audience}
-                          </Badge>
-                          {transformation.transformation_quality_score && (
-                            <Badge variant="default">
-                              Quality: {transformation.transformation_quality_score}/5
-                            </Badge>
-                          )}
-                          {transformation.api_model_used && (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                              {transformation.api_model_used}
-                            </Badge>
-                          )}
+        {/* Content */}
+        <div className="flex-1 bg-secondary/5">
+          <div className="max-w-6xl mx-auto p-6 sm:p-12">
+            
+            {loading && transformations.length === 0 ? (
+               <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-24 bg-secondary/10 rounded-xl animate-pulse" />
+                  ))}
+               </div>
+            ) : filteredTransformations.length === 0 ? (
+               <div className="text-center py-20 opacity-50">
+                  <p className="font-serif text-xl italic mb-2">The archive is empty</p>
+                  <p className="text-sm">No transformations match your criteria.</p>
+               </div>
+            ) : (
+               <div className="space-y-4">
+                  {filteredTransformations.map((t) => (
+                     <div 
+                        key={t.id}
+                        className={cn(
+                           "group bg-card rounded-xl border border-border/40 overflow-hidden transition-all duration-300 hover:shadow-md",
+                           expandedId === t.id ? "ring-1 ring-primary/20" : ""
+                        )}
+                     >
+                        {/* List Item Header (Clickable) */}
+                        <div 
+                           onClick={() => setExpandedId(expandedId === t.id ? null : t.id)}
+                           className="p-5 flex items-start sm:items-center justify-between gap-4 cursor-pointer"
+                        >
+                           <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                                 <Badge variant="secondary" className="bg-secondary/50 font-normal">{t.content_type}</Badge>
+                                 <span>•</span>
+                                 <span>{formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}</span>
+                              </div>
+                              <h3 className="font-serif font-medium text-lg line-clamp-1 group-hover:text-primary transition-colors">
+                                 {t.transformed_content.substring(0, 60)}...
+                              </h3>
+                           </div>
+                           <ChevronRight className={cn(
+                              "h-5 w-5 text-muted-foreground transition-transform duration-300",
+                              expandedId === t.id ? "rotate-90" : ""
+                           )} />
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {transformation.created_at && formatDistanceToNow(new Date(transformation.created_at), { addSuffix: true })}
-                        </p>
-                      </div>
-                      
-                      {/* Feedback Stars */}
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            onClick={() => submitFeedback(transformation.id, star)}
-                            className={`text-lg hover:scale-110 transition-transform ${
-                              transformation.user_feedback && star <= transformation.user_feedback
-                                ? 'text-yellow-500'
-                                : 'text-gray-300 hover:text-yellow-400'
-                            }`}
-                          >
-                            ⭐
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2 text-sm">Transformed Content</h4>
-                        <div className="bg-accent/50 p-3 rounded text-sm max-h-32 sm:max-h-none overflow-y-auto">
-                          {transformation.transformed_content}
-                        </div>
-                        <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
-                          <span>{transformation.transformed_length} characters</span>
-                          {transformation.length_change_percent && (
-                            <span className={`${
-                              transformation.length_change_percent > 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              ({transformation.length_change_percent > 0 ? '+' : ''}{transformation.length_change_percent.toFixed(1)}%)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <details className="group">
-                        <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                          View Original Content
-                        </summary>
-                        <div className="mt-2 bg-muted p-3 rounded text-sm max-h-32 overflow-y-auto">
-                          {transformation.original_content}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {transformation.original_length} characters
-                        </p>
-                      </details>
-                    </div>
 
-                    {transformation.additional_context && (
-                      <div className="mt-4">
-                        <h4 className="font-medium mb-2">Additional Context</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {transformation.additional_context}
-                        </p>
-                      </div>
-                    )}
+                        {/* Expanded Content */}
+                        <div className={cn(
+                           "grid transition-all duration-300 ease-in-out",
+                           expandedId === t.id ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        )}>
+                           <div className="overflow-hidden bg-secondary/5 border-t border-border/40">
+                              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                 
+                                 {/* Transformed */}
+                                 <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                       <span className="text-xs text-primary font-medium">Result</span>
+                                       <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(t.transformed_content)}>
+                                          <Copy className="h-3 w-3" />
+                                       </Button>
+                                    </div>
+                                    <div className="p-4 bg-background rounded-lg border border-border/50 text-sm leading-relaxed whitespace-pre-wrap">
+                                       {t.transformed_content}
+                                    </div>
+                                    <div className="flex gap-2">
+                                       {t.transformation_quality_score && (
+                                          <Badge variant="outline" className="text-xs">Quality: {t.transformation_quality_score}/5</Badge>
+                                       )}
+                                       {t.length_change_percent && (
+                                          <Badge variant="outline" className={cn("text-xs", t.length_change_percent > 0 ? "text-green-600" : "text-orange-600")}>
+                                             {t.length_change_percent > 0 ? '+' : ''}{t.length_change_percent}% length
+                                          </Badge>
+                                       )}
+                                    </div>
+                                 </div>
 
-                  </CardContent>
-                </Card>
-              ))}
+                                 {/* Original */}
+                                 <div className="space-y-3">
+                                    <span className="text-xs text-muted-foreground font-medium">Original</span>
+                                    <div className="p-4 bg-secondary/10 rounded-lg border border-transparent text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                                       {t.original_content}
+                                    </div>
+                                    {t.additional_context && (
+                                       <div className="pt-2">
+                                          <p className="text-xs text-muted-foreground italic">Context: {t.additional_context}</p>
+                                       </div>
+                                    )}
+                                 </div>
 
-              {hasMore && (
-                <div className="text-center py-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setPage(prev => prev + 1)
-                      fetchTransformations(false)
-                    }}
-                    disabled={loading}
-                  >
-                    {loading ? 'Loading...' : 'Load More'}
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+            )}
+
+            {hasMore && !loading && filteredTransformations.length > 0 && (
+               <div className="flex justify-center pt-8">
+                  <Button variant="outline" onClick={() => {
+                     setPage(prev => prev + 1)
+                     fetchTransformations(false)
+                  }}>
+                     Load older items
                   </Button>
-                </div>
-              )}
-            </div>
-          )}
+               </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

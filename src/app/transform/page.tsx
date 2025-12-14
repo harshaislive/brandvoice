@@ -5,7 +5,6 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Navigation } from '@/components/layout/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -14,8 +13,9 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/auth-context'
-import { Sparkles, Copy, RotateCcw, Target, Type, Users, MessageCircle, Mail, Share2, FileText, Globe, Package, Zap, TrendingUp, Info } from 'lucide-react'
+import { Sparkles, Copy, RotateCcw, Target, Type, Users, MessageCircle, Mail, Share2, FileText, Globe, Package, Zap, TrendingUp, Info, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 interface TransformResult {
   transformed_content: string
@@ -129,38 +129,23 @@ export default function TransformPage() {
 
   // Helper function to detect and format content
   const formatContent = (content: string) => {
-    // Check if content contains markdown
-    const hasMarkdown = /(\*\*|__|##|###|\[.*\]\(.*\)|`.*`|\n-|\n\*|\n\d+\.)/.test(content)
-    
-    // Check if content contains HTML
     const hasHTML = /<\/?[a-z][\s\S]*>/i.test(content)
+    const hasMarkdown = /(\*\*|__|##|###|\[.*\]\(.*\)|`.*`|\n-|\n\*|\n\d+\.)/.test(content)
     
     if (hasHTML || hasMarkdown) {
       return (
-        <div className="prose prose-sm max-w-none">
+        <div className="prose prose-sm prose-stone max-w-none">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-            // Custom styling for markdown elements
-            h1: ({...props}) => <h1 className="text-lg font-semibold mb-2" {...props} />,
-            h2: ({...props}) => <h2 className="text-base font-semibold mb-2" {...props} />,
-            h3: ({...props}) => <h3 className="text-sm font-semibold mb-1" {...props} />,
-            p: ({...props}) => <p className="mb-2 last:mb-0" {...props} />,
-            ul: ({...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
-            ol: ({...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
-            li: ({...props}) => <li className="text-sm" {...props} />,
-            code: ({inline, ...props}: {inline?: boolean} & React.HTMLProps<HTMLElement>) => 
-              inline ? (
-                <code className="bg-muted px-1 py-0.5 rounded text-xs" {...props} />
-              ) : (
-                <code className="block bg-muted p-2 rounded text-xs overflow-x-auto" {...props} />
+              h1: ({...props}) => <h1 className="text-xl font-serif font-medium mb-3 mt-4" {...props} />,
+              h2: ({...props}) => <h2 className="text-lg font-serif font-medium mb-3 mt-4" {...props} />,
+              p: ({...props}) => <p className="mb-4 leading-relaxed text-foreground/90" {...props} />,
+              ul: ({...props}) => <ul className="list-disc list-inside mb-4 space-y-1" {...props} />,
+              li: ({...props}) => <li className="text-sm" {...props} />,
+              blockquote: ({...props}) => (
+                <blockquote className="border-l-2 border-primary/30 pl-4 italic my-4 text-muted-foreground" {...props} />
               ),
-            strong: ({...props}) => <strong className="font-semibold" {...props} />,
-            em: ({...props}) => <em className="italic" {...props} />,
-            blockquote: ({...props}) => (
-              <blockquote className="border-l-2 border-muted-foreground/20 pl-3 text-muted-foreground italic mb-2" {...props} />
-            ),
-            a: ({...props}) => <a className="text-primary underline" {...props} />
             }}
           >
             {content}
@@ -169,9 +154,8 @@ export default function TransformPage() {
       )
     }
     
-    // Default: preserve line breaks and format as plain text
     return (
-      <div className="whitespace-pre-wrap leading-relaxed">
+      <div className="whitespace-pre-wrap leading-relaxed text-foreground/90 font-sans">
         {content}
       </div>
     )
@@ -181,88 +165,75 @@ export default function TransformPage() {
     return (
       <div className="min-h-screen">
         <Navigation />
-        <main className="pt-16 lg:pt-0 lg:ml-64 flex items-center justify-center p-4 sm:p-6">
-          <Card className="max-w-md w-full">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Transform Content
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <p className="text-muted-foreground">
-                Please sign in to access the content transformation feature.
-              </p>
-              <Button onClick={() => window.location.href = '/auth/login'} className="w-full">
-                Sign In
-              </Button>
-            </CardContent>
-          </Card>
+        <main className="pt-16 lg:pt-0 lg:ml-64 flex items-center justify-center p-6 h-screen">
+          <div className="text-center space-y-4 max-w-md">
+            <h2 className="text-3xl font-serif font-light">Authentication Required</h2>
+            <p className="text-muted-foreground">Please sign in to access the studio.</p>
+            <Button onClick={() => window.location.href = '/auth/login'}>Sign In</Button>
+          </div>
         </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-16 lg:pt-0 lg:ml-64 p-4 sm:p-6 min-h-[calc(100vh-4rem)] lg:min-h-screen flex flex-col justify-center">
-        <div className="max-w-6xl mx-auto w-full space-y-4 sm:space-y-6">
-          {/* Compact Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 rounded-md bg-primary/10">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
+      <main className="pt-16 lg:pt-0 lg:ml-64 min-h-screen flex flex-col">
+        {/* Header */}
+        <div className="px-6 py-8 sm:px-12 border-b border-border/40">
+           <div className="max-w-6xl mx-auto flex items-end justify-between">
               <div>
-                <h1 className="text-xl font-semibold text-primary">Transform Content</h1>
-                <p className="text-sm text-muted-foreground">Authentic brand voice transformation</p>
+                <h1 className="text-3xl sm:text-4xl font-serif font-light text-foreground mb-2">
+                  Content Generator
+                </h1>
+                <p className="text-muted-foreground font-light text-sm">
+                  Create on-brand content instantly.
+                </p>
               </div>
-            </div>
-          </div>
+              {result && (
+                 <Button onClick={handleReset} variant="ghost" size="sm" className="hidden sm:flex">
+                    <RotateCcw className="h-4 w-4 mr-2" /> Start New
+                 </Button>
+              )}
+           </div>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-            {/* Input Section - Mobile Friendly */}
-            <div className="lg:sticky lg:top-4 lg:self-start space-y-4">
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Type className="h-4 w-4" />
-                    Content & Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="content" className="text-xs font-medium">Content to Transform *</Label>
+        <div className="flex-1 p-6 sm:p-12 overflow-y-auto">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 h-full">
+            
+            {/* Input Column */}
+            <div className="space-y-8 flex flex-col h-full">
+               <div className="space-y-6 flex-1">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground font-medium">Source Content</Label>
                     <Textarea
-                      id="content"
-                      placeholder="Enter your content here..."
+                      placeholder="Paste your draft here..."
                       value={originalContent}
                       onChange={(e) => setOriginalContent(e.target.value)}
-                      className="min-h-28 text-sm resize-both"
+                      className="min-h-[200px] lg:min-h-[300px] resize-none p-6 text-base leading-relaxed border-border/50 bg-secondary/10 focus:bg-background focus:ring-1 transition-all rounded-xl"
                     />
-                    {originalContent && (
-                      <Badge variant="outline" className="text-xs h-5">
-                        {originalContent.length} chars
-                      </Badge>
-                    )}
+                    <div className="flex justify-between items-center text-xs text-muted-foreground px-1">
+                       <span>{originalContent.length} characters</span>
+                       {originalContent && <span>Ready to refine</span>}
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="content-type" className="text-xs font-medium">Type *</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground font-medium">Format</Label>
                       <Select value={contentType} onValueChange={setContentType}>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="Select type" />
+                        <SelectTrigger className="h-12 border-border/50 bg-background rounded-lg">
+                          <SelectValue placeholder="Select format" />
                         </SelectTrigger>
                         <SelectContent>
                           {CONTENT_TYPES.map((type) => {
                             const IconComponent = type.icon
                             return (
-                              <SelectItem key={type.value} value={type.value} className="text-xs">
-                                <div className="flex items-center gap-1.5">
-                                  <IconComponent className="h-3 w-3" />
+                              <SelectItem key={type.value} value={type.value}>
+                                <div className="flex items-center gap-2">
+                                  <IconComponent className="h-4 w-4 opacity-50" />
                                   {type.label}
                                 </div>
                               </SelectItem>
@@ -270,204 +241,120 @@ export default function TransformPage() {
                           })}
                         </SelectContent>
                       </Select>
-                      
                       {contentType === 'custom' && (
                         <Input
-                          placeholder="Enter content type..."
-                          value={customContentType}
-                          onChange={(e) => setCustomContentType(e.target.value)}
-                          className="h-8 text-xs mt-1.5"
+                           placeholder="Specify type..."
+                           value={customContentType}
+                           onChange={(e) => setCustomContentType(e.target.value)}
+                           className="mt-2"
                         />
                       )}
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="audience" className="text-xs font-medium">Audience *</Label>
-                      <Select value={targetAudience} onValueChange={setTargetAudience}>
-                        <SelectTrigger className="h-8 text-xs">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground font-medium">Target Audience</Label>
+                       <Select value={targetAudience} onValueChange={setTargetAudience}>
+                        <SelectTrigger className="h-12 border-border/50 bg-background rounded-lg">
                           <SelectValue placeholder="Select audience" />
                         </SelectTrigger>
                         <SelectContent>
                           {TARGET_AUDIENCES.map((audience) => (
-                            <SelectItem key={audience} value={audience} className="text-xs">
-                              <div className="flex items-center gap-1.5">
-                                <Users className="h-3 w-3" />
+                            <SelectItem key={audience} value={audience}>
                                 {audience === 'custom' ? 'Custom Audience...' : audience}
-                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      
-                      {targetAudience === 'custom' && (
+                       {targetAudience === 'custom' && (
                         <Input
-                          placeholder="Enter your target audience..."
+                          placeholder="Describe audience..."
                           value={customAudience}
                           onChange={(e) => setCustomAudience(e.target.value)}
-                          className="h-8 text-xs mt-1.5"
+                           className="mt-2"
                         />
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="context" className="text-xs font-medium">Context (Optional)</Label>
-                    <Textarea
-                      id="context"
-                      placeholder="Additional requirements or context..."
+                   <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground font-medium">Context / Notes</Label>
+                    <Input
+                      placeholder="Any specific instructions? (e.g., 'Make it punchy', 'Focus on value')"
                       value={additionalContext}
                       onChange={(e) => setAdditionalContext(e.target.value)}
-                      className="min-h-16 text-sm resize-vertical"
+                      className="h-12 border-border/50 bg-background rounded-lg"
                     />
                   </div>
+               </div>
 
-                  <div className="flex gap-2 pt-2">
-                    <Button 
-                      onClick={handleTransform} 
-                      disabled={isTransforming || !originalContent.trim() || !contentType || (contentType === 'custom' && !customContentType.trim()) || !targetAudience || (targetAudience === 'custom' && !customAudience.trim())}
-                      className="flex-1 h-8 text-xs gap-1.5"
-                      size="sm"
-                    >
-                      {isTransforming ? (
-                        <>
-                          <div className="animate-spin rounded-full h-3 w-3 border-b border-white"></div>
-                          Transforming...
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="h-3 w-3" />
-                          Transform
-                        </>
-                      )}
-                    </Button>
-                    
-                    <Button 
-                      onClick={handleReset}
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-2"
-                    >
-                      <RotateCcw className="h-3 w-3" />
-                    </Button>
+               <div className="pt-4">
+                  <Button 
+                    onClick={handleTransform} 
+                    disabled={isTransforming || !originalContent.trim() || !contentType || !targetAudience}
+                    className="w-full h-14 text-lg shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {isTransforming ? (
+                      <span className="flex items-center gap-2 animate-pulse">
+                        <Sparkles className="h-5 w-5 animate-spin" /> Refining Voice...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                         Refine Content <ArrowRight className="h-5 w-5" />
+                      </span>
+                    )}
+                  </Button>
+               </div>
+            </div>
+
+            {/* Output Column */}
+            <div className={cn(
+               "relative rounded-2xl bg-secondary/30 border border-border/50 p-6 sm:p-8 flex flex-col h-full transition-all duration-500",
+               !result && "items-center justify-center opacity-70 bg-secondary/10 border-dashed"
+            )}>
+               {result ? (
+                 <>
+                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/10">
+                      <div className="flex items-center gap-3">
+                         <div className="p-2 bg-primary/10 rounded-full">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                         </div>
+                         <div>
+                            <h3 className="font-serif font-medium">Refined Output</h3>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                               <Badge variant="outline" className="text-[10px] h-5">{result.quality_score}/5 Quality</Badge>
+                               <span>{result.transformed_length} chars</span>
+                            </div>
+                         </div>
+                      </div>
+                      <Button onClick={() => copyToClipboard(result.transformed_content)} variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                         <Copy className="h-4 w-4" />
+                      </Button>
+                   </div>
+                   
+                   <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                      {formatContent(result.transformed_content)}
+                   </div>
+
+                   <div className="mt-6 pt-4 border-t border-border/10">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                         <span>Change: <span className={result.length_change_percent >= 0 ? "text-green-600" : "text-orange-600"}>{result.length_change_percent > 0 ? '+' : ''}{result.length_change_percent}% length</span></span>
+                         <span>{result.processing_time_ms}ms</span>
+                      </div>
+                   </div>
+                 </>
+               ) : (
+                  <div className="text-center space-y-4 max-w-sm mx-auto">
+                     <div className="w-16 h-16 rounded-full bg-background border border-border/50 flex items-center justify-center mx-auto shadow-sm">
+                        <Type className="h-8 w-8 text-muted-foreground/50" />
+                     </div>
+                     <h3 className="text-xl font-serif font-light text-muted-foreground">Ready to refine</h3>
+                     <p className="text-sm text-muted-foreground/60 leading-relaxed">
+                        Your transformed content will appear here, optimized for your audience and tone.
+                     </p>
                   </div>
-                </CardContent>
-              </Card>
+               )}
             </div>
 
-            {/* Output Section - Mobile Friendly */}
-            <div className="space-y-4">
-              {result ? (
-                <>
-                  <Card className="border-0 shadow-sm">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                          <Sparkles className="h-4 w-4 text-primary" />
-                          Result
-                        </CardTitle>
-                        <Button 
-                          onClick={() => copyToClipboard(result.transformed_content)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                        >
-                          <Copy className="h-3 w-3 mr-1" />
-                          Copy
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="bg-secondary/30 rounded-md p-3 border text-sm">
-                        {formatContent(result.transformed_content)}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-0 shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex items-center gap-2 text-sm">
-                        <TrendingUp className="h-4 w-4" />
-                        Analytics
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0 space-y-3">
-                      {/* Quality Score */}
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground">Quality Score</span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Info className="h-3 w-3 text-muted-foreground/60 hover:text-muted-foreground" />
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-xs">
-                                  <p className="text-xs">
-                                    Quality score (1-5) based on content preservation, 
-                                    appropriate length changes, and optimization for the selected content type.
-                                    Higher scores indicate better brand voice alignment and audience targeting.
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          <Badge variant="secondary" className="h-4 text-xs px-1">
-                            {result.quality_score}/5
-                          </Badge>
-                        </div>
-                        <Progress value={result.quality_score * 20} className="h-1" />
-                      </div>
-
-                      {/* Content Metrics */}
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">Original</div>
-                          <div className="text-sm font-mono">{result.original_length}</div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">Result</div>
-                          <div className="text-sm font-mono">{result.transformed_length}</div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-xs text-muted-foreground">Change</div>
-                          <div className={`text-sm font-mono ${result.length_change_percent >= 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                            {result.length_change_percent >= 0 ? '+' : ''}{result.length_change_percent}%
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {selectedContentType && (
-                          <Badge variant="outline" className="h-5 text-xs gap-1 px-1.5">
-                            {React.createElement(selectedContentType.icon, { className: "h-2.5 w-2.5" })}
-                            {contentType === 'custom' ? customContentType : selectedContentType.label}
-                          </Badge>
-                        )}
-                        <Badge variant="outline" className="h-5 text-xs gap-1 px-1.5">
-                          <Users className="h-2.5 w-2.5" />
-                          {targetAudience === 'custom' ? customAudience : targetAudience}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </>
-              ) : (
-                <Card className="border-dashed border-muted-foreground/20">
-                  <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-                    <div className="p-3 rounded-full bg-muted/50">
-                      <MessageCircle className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="text-sm font-medium">Ready to Transform</h3>
-                      <p className="text-xs text-muted-foreground max-w-xs">
-                        Configure your content and settings, then transform to see results here.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
           </div>
         </div>
       </main>

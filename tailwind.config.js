@@ -77,7 +77,7 @@ module.exports = {
       },
       fontFamily: {
         'serif': ['ABC Arizona Flare', 'serif'],
-        'sans': ['ABC Arizona Sans', 'Inter', 'sans-serif'],
+        'sans': ['ABC Arizona Flare', 'Inter', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",

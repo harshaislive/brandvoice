@@ -3,202 +3,174 @@
 import Link from 'next/link'
 import { Navigation } from '@/components/layout/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/auth-context'
-import { Sparkles, Zap, History, MessageCircle, Settings, BarChart3 } from 'lucide-react'
+import { Sparkles, Zap, History, MessageCircle, Settings, BarChart3, ArrowRight, Target, Leaf } from 'lucide-react'
 
 export default function Home() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-background">
         <Navigation />
         
-        <main className="pt-16 lg:pt-0 lg:ml-64 p-4 sm:p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-serif font-bold text-primary mb-4">
-                Brand Voice Transformer
+        <main className="pt-16 lg:pt-0 lg:ml-64 min-h-screen flex flex-col justify-center">
+          <div className="max-w-5xl mx-auto px-6 sm:px-12 py-12 lg:py-20 w-full">
+            <div className="text-center mb-16 lg:mb-24 space-y-6">
+              <div className="inline-block px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-sm font-medium tracking-wide mb-4">
+                BEFOREST BRAND VOICE
+              </div>
+              <h1 className="text-5xl sm:text-7xl lg:text-8xl font-serif font-light text-foreground leading-[1.1] tracking-tight">
+                Brand Voice <span className="italic text-primary">Assistant</span>
               </h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                Transform your content with authentic, warm, and premium brand voice
+              <p className="text-xl sm:text-2xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
+                Generate and refine content aligned with Beforest&apos;s brand guidelines.
               </p>
               
-              <div className="flex gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-5 justify-center pt-8">
                 <Link href="/auth/register">
-                  <Button size="lg" className="gap-2">
-                    🚀 Get Started
+                  <Button size="lg" className="h-14 px-8 text-lg font-medium rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                    Start Transforming <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link href="/auth/login">
-                  <Button variant="outline" size="lg" className="gap-2">
-                    🔐 Sign In
+                  <Button variant="outline" size="lg" className="h-14 px-8 text-lg font-medium rounded-full border-primary/20 text-primary hover:bg-primary/5 transition-all">
+                    Sign In
                   </Button>
                 </Link>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    🎯 <span>Authentic Voice</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Transform content to match genuine, warm, and approachable brand voice
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    🌱 <span>Premium Quality</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Maintain premium positioning while staying accessible and expert yet approachable
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    📊 <span>Smart Analytics</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Track transformation quality and user feedback with detailed analytics
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="bg-accent/50">
-              <CardHeader>
-                <CardTitle>Ready to Transform Your Content?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Whether you need marketing copy, email content, social media posts, or any other content type, 
-                  our AI-powered transformation ensures perfect brand alignment every time.
-                </p>
-                <div className="flex gap-3">
-                  <Link href="/auth/register">
-                    <Button>Create Account</Button>
-                  </Link>
-                  <Link href="/auth/login">
-                    <Button variant="outline">
-                      Sign In to Continue
-                    </Button>
-                  </Link>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+              <div className="p-8 rounded-2xl bg-secondary/30 hover:bg-secondary/50 transition-colors border border-transparent hover:border-border">
+                <div className="h-12 w-12 bg-background rounded-full flex items-center justify-center mb-6 shadow-sm text-2xl">
+                  <Target className="h-6 w-6 text-primary" />
                 </div>
-              </CardContent>
-            </Card>
+                <h3 className="text-xl font-serif font-medium mb-3">Voice Generation</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Automatically align content with brand tone guidelines.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-2xl bg-secondary/30 hover:bg-secondary/50 transition-colors border border-transparent hover:border-border">
+                 <div className="h-12 w-12 bg-background rounded-full flex items-center justify-center mb-6 shadow-sm text-2xl">
+                  <Leaf className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-serif font-medium mb-3">Quality Check</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Ensure content meets professional standards and brand compliance.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-2xl bg-secondary/30 hover:bg-secondary/50 transition-colors border border-transparent hover:border-border">
+                 <div className="h-12 w-12 bg-background rounded-full flex items-center justify-center mb-6 shadow-sm text-2xl">
+                  <BarChart3 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-serif font-medium mb-3">Usage Analytics</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Monitor usage and transformation metrics.
+                </p>
+              </div>
+            </div>
           </div>
         </main>
       </div>
     )
   }
 
-  // Logged-in user homepage - minimal and focused
+  // Logged-in user homepage
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-16 lg:pt-0 lg:ml-64 p-4 sm:p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
-              <div className="text-left">
-                <h1 className="text-2xl font-semibold text-primary">Welcome back!</h1>
-                <p className="text-muted-foreground">Ready to transform some content?</p>
-              </div>
-            </div>
+      <main className="pt-16 lg:pt-0 lg:ml-64 p-6 sm:p-12 lg:p-16">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-12">
+             <h1 className="text-4xl sm:text-5xl font-serif font-light text-foreground mb-3">
+              Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {user?.displayName?.split(' ')[0] || 'there'}.
+            </h1>
+            <p className="text-xl text-muted-foreground font-light">
+              Select a tool to begin.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <Link href="/transform" className="group">
-              <Card className="h-full transition-all hover:shadow-lg hover:border-primary/20 group-hover:scale-[1.02]">
-                <CardContent className="p-6 sm:p-8 text-center space-y-4">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <Zap className="h-8 w-8 text-primary" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <Link href="/transform" className="group block h-full">
+              <div className="h-full p-8 rounded-2xl border border-border bg-card hover:shadow-lg hover:border-primary/20 transition-all duration-300 group-hover:-translate-y-1 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Zap className="w-32 h-32" />
+                </div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                    <Zap className="h-7 w-7 text-primary" />
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-semibold">Transform Content</h3>
-                    <p className="text-muted-foreground">
-                      Convert any content to match your authentic brand voice
-                    </p>
-                  </div>
-                  <div className="pt-4">
-                    <Button className="w-full group-hover:bg-primary/90">
-                      Start Transforming
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  <h3 className="text-2xl font-serif font-medium mb-2">Transform Content</h3>
+                  <p className="text-muted-foreground mb-8 max-w-xs">
+                    Convert content to match brand guidelines.
+                  </p>
+                  <span className="inline-flex items-center text-primary font-medium group-hover:underline underline-offset-4">
+                    Start Creating <ArrowRight className="ml-2 h-4 w-4" />
+                  </span>
+                </div>
+              </div>
             </Link>
 
-            <Link href="/history" className="group">
-              <Card className="h-full transition-all hover:shadow-lg hover:border-primary/20 group-hover:scale-[1.02]">
-                <CardContent className="p-6 sm:p-8 text-center space-y-4">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center group-hover:bg-secondary/70 transition-colors">
-                    <History className="h-8 w-8 text-secondary-foreground" />
+            <Link href="/history" className="group block h-full">
+              <div className="h-full p-8 rounded-2xl border border-border bg-card hover:shadow-lg hover:border-secondary-foreground/20 transition-all duration-300 group-hover:-translate-y-1 relative overflow-hidden">
+                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <History className="w-32 h-32" />
+                </div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center mb-6 group-hover:bg-secondary/80 transition-colors">
+                    <History className="h-7 w-7 text-secondary-foreground" />
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-semibold">View History</h3>
-                    <p className="text-muted-foreground">
-                      Browse and manage your previous transformations
-                    </p>
-                  </div>
-                  <div className="pt-4">
-                    <Button variant="outline" className="w-full">
-                      Browse History
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  <h3 className="text-2xl font-serif font-medium mb-2">View History</h3>
+                  <p className="text-muted-foreground mb-8 max-w-xs">
+                    Access archive of previous transformations.
+                  </p>
+                   <span className="inline-flex items-center text-foreground font-medium group-hover:underline underline-offset-4">
+                    Browse Archive <ArrowRight className="ml-2 h-4 w-4" />
+                  </span>
+                </div>
+              </div>
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-            <Link href="/chat" className="group">
-              <Card className="transition-all hover:shadow-md hover:border-primary/20">
-                <CardContent className="p-4 text-center space-y-2">
-                  <MessageCircle className="h-6 w-6 mx-auto text-primary" />
-                  <h4 className="font-medium">Chat</h4>
-                  <p className="text-xs text-muted-foreground">Interactive conversations</p>
-                </CardContent>
-              </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <Link href="/chat" className="group block">
+              <div className="p-6 rounded-xl border border-border bg-card hover:bg-accent/10 transition-colors">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <h4 className="font-serif font-medium text-lg">Chat</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">Interactive conversations with your brand assistant.</p>
+              </div>
             </Link>
 
-            <Link href="/settings" className="group">
-              <Card className="transition-all hover:shadow-md hover:border-primary/20">
-                <CardContent className="p-4 text-center space-y-2">
-                  <Settings className="h-6 w-6 mx-auto text-primary" />
-                  <h4 className="font-medium">Settings</h4>
-                  <p className="text-xs text-muted-foreground">Customize your prompts</p>
-                </CardContent>
-              </Card>
+            <Link href="/settings" className="group block">
+              <div className="p-6 rounded-xl border border-border bg-card hover:bg-accent/10 transition-colors">
+                 <div className="flex items-center gap-4 mb-3">
+                  <div className="p-2 bg-secondary rounded-lg">
+                    <Settings className="h-5 w-5 text-secondary-foreground" />
+                  </div>
+                  <h4 className="font-serif font-medium text-lg">Settings</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">Customize your prompts and preferences.</p>
+              </div>
             </Link>
 
-            <Link href="/analytics" className="group">
-              <Card className="transition-all hover:shadow-md hover:border-primary/20">
-                <CardContent className="p-4 text-center space-y-2">
-                  <BarChart3 className="h-6 w-6 mx-auto text-primary" />
-                  <h4 className="font-medium">Analytics</h4>
-                  <p className="text-xs text-muted-foreground">Usage insights</p>
-                </CardContent>
-              </Card>
+            <Link href="/analytics" className="group block">
+              <div className="p-6 rounded-xl border border-border bg-card hover:bg-accent/10 transition-colors">
+                 <div className="flex items-center gap-4 mb-3">
+                  <div className="p-2 bg-secondary rounded-lg">
+                    <BarChart3 className="h-5 w-5 text-secondary-foreground" />
+                  </div>
+                  <h4 className="font-serif font-medium text-lg">Analytics</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">View usage insights and performance stats.</p>
+              </div>
             </Link>
           </div>
         </div>

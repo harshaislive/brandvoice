@@ -7,7 +7,6 @@ import * as z from 'zod'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { toast } from 'sonner'
+import Image from 'next/image'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -56,91 +56,98 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-serif font-bold text-primary mb-2">
-            Beforest
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      {/* Left Panel - Visual Branding */}
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-sidebar text-sidebar-foreground relative overflow-hidden">
+        <div className="relative z-10">
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={48}
+            height={48}
+            className="invert object-contain mb-6 opacity-80"
+          />
+          <h1 className="font-serif text-4xl font-medium leading-tight tracking-tight max-w-md">
+            Brand Voice Assistant
           </h1>
-          <p className="text-muted-foreground">
-            Sign in to your Brand Voice Transformer
+        </div>
+        
+        <div className="relative z-10">
+          <p className="font-serif text-xl leading-relaxed max-w-lg">
+            Internal tool for consistent brand communication.
           </p>
+          <p className="mt-4 text-sm font-sans opacity-60">Beforest Employee Portal</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="Enter your email"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        {/* Abstract Background Decoration */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
+      </div>
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Enter your password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      {/* Right Panel - Form */}
+      <div className="flex flex-col justify-center items-center p-6 sm:p-12 bg-background">
+        <div className="w-full max-w-md space-y-8">
+          <div className="space-y-2 text-center lg:text-left">
+            <h2 className="text-3xl font-serif font-medium text-foreground">Sign In</h2>
+            <p className="text-muted-foreground">Access your account.</p>
+          </div>
 
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? 'Signing in...' : 'Sign In'}
-                </Button>
-              </form>
-            </Form>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground/80">Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="name@company.com"
+                        className="h-12 border-muted bg-transparent focus:border-primary/50"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Don&apos;t have an account?{' '}
-                <Link 
-                  href="/auth/register" 
-                  className="text-primary hover:underline font-medium"
-                >
-                  Sign up
-                </Link>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground/80">Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        className="h-12 border-muted bg-transparent focus:border-primary/50"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <Card className="mt-6 bg-accent/30">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h3 className="font-medium mb-2">✨ Transform with Confidence</h3>
-              <p className="text-sm text-muted-foreground">
-                Access your transformation history, chat with our AI curator, 
-                and maintain consistent brand voice across all your content.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              <Button type="submit" disabled={isLoading} className="w-full h-12 text-base font-medium bg-primary hover:bg-primary/90">
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="text-center text-sm">
+            <span className="text-muted-foreground">Don&apos;t have an account? </span>
+            <Link 
+              href="/auth/register" 
+              className="font-medium text-primary hover:text-primary/80 transition-colors underline underline-offset-4"
+            >
+              Sign up for free
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )
