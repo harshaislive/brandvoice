@@ -29,7 +29,7 @@ export function EmptyChatState({ className }: EmptyChatStateProps) {
              How can I help you today?
           </h2>
           <p className="text-muted-foreground text-lg font-light leading-relaxed">
-             I'm here to help you craft content with your authentic brand voice.
+             I&apos;m here to help you craft content with your authentic brand voice.
           </p>
         </div>
 

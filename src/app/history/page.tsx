@@ -179,7 +179,7 @@ export default function HistoryPage() {
                               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                                  <Badge variant="secondary" className="bg-secondary/50 font-normal">{t.content_type}</Badge>
                                  <span>•</span>
-                                 <span>{formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}</span>
+                                 <span>{t.created_at ? formatDistanceToNow(new Date(t.created_at), { addSuffix: true }) : 'Unknown date'}</span>
                               </div>
                               <h3 className="font-serif font-medium text-lg line-clamp-1 group-hover:text-primary transition-colors">
                                  {t.transformed_content.substring(0, 60)}...
