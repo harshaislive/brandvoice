@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createChatCompletion } from '@/lib/openai'
 import { requireAuth } from '@/lib/auth'
+import { renderBrandPrompt } from '@/lib/brand-prompts'
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
@@ -33,11 +34,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Use the custom prompts provided from settings
-    const fullTransformPrompt = transform_prompt
-      .replace('{original_content}', original_content)
-      .replace('{content_type}', content_type)
-      .replace('{target_audience}', target_audience)
-      .replace('{additional_context}', additional_context || '')
+    let fullTransformPrompt = renderBrandPrompt(transform_prompt, {
+      original_content,
+      content_type,
+      target_audience,
+      additional_context,
+    })
+
+    if (!fullTransformPrompt.includes(original_content)) {
+      fullTransformPrompt += `\n\nOriginal content:\n${original_content}`
+    }
 
     // Generate transformation using the custom prompts
     const transformed_content = await createChatCompletion({
@@ -45,7 +51,8 @@ export async function POST(request: NextRequest) {
         { role: 'system', content: system_prompt },
         { role: 'user', content: fullTransformPrompt }
       ],
-      maxTokens: 2000
+      // Kimi-K2.6 may use a substantial part of this budget for reasoning.
+      maxTokens: 8000
     })
 
     const processingTime = Date.now() - startTime

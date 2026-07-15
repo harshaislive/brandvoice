@@ -7,6 +7,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 const migration = await readFile(new URL('../database-setup.sql', import.meta.url), 'utf8')
+const canonicalPrompts = JSON.parse(await readFile(new URL('../src/config/brand-prompts.json', import.meta.url), 'utf8'))
 const sql = postgres(process.env.DATABASE_URL, {
   max: 1,
   connect_timeout: 10,
@@ -18,6 +19,11 @@ try {
   await sql.begin(async (transaction) => {
     await transaction`select pg_advisory_xact_lock(hashtext('brandvoice_schema_migration'))`
     await transaction.unsafe(migration)
+    await transaction`
+      INSERT INTO public.beforest_settings (setting_key, setting_value, updated_by)
+      VALUES ('prompts', ${transaction.json(canonicalPrompts)}, 'system')
+      ON CONFLICT (setting_key) DO NOTHING
+    `
   })
 
   if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {

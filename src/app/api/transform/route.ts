@@ -3,6 +3,7 @@ import { createChatCompletion } from '@/lib/openai'
 import { getDb } from '@/lib/db'
 import { getUserFromToken } from '@/lib/auth'
 import { TransformRequest, TransformResponse } from '@/types/database'
+import { CANONICAL_BRAND_PROMPTS, parseJustification, renderBrandPrompt, type BrandPromptSet } from '@/lib/brand-prompts'
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
@@ -37,26 +38,7 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || null
     const sessionId = request.headers.get('x-session-id') || null
 
-    // Load system prompts from database
-    let systemPrompt = ''
-    let transformationPrompt = ''
-    
-    // Default prompts as fallback
-    const defaultSystemPrompt = `You are the Beforest Brand Voice Curator, an expert AI assistant specialized in transforming content to match the authentic, warm, and premium brand voice of Beforest.
-
-Your role is to transform content while:
-- Maintaining the original meaning and intent
-- Applying Beforest's brand voice characteristics
-- Optimizing for the target audience
-- Ensuring authenticity and warmth
-
-Beforest brand characteristics:
-- Authentic and genuine tone
-- Warm and approachable language
-- Premium quality without pretension
-- Expert yet accessible
-- Nature-inspired and sustainable focus
-- Environmentally conscious messaging`
+    let prompts: BrandPromptSet = CANONICAL_BRAND_PROMPTS
     
     try {
       const sql = getDb()
@@ -70,69 +52,43 @@ Beforest brand characteristics:
       `
 
       if (!settings) {
-        console.warn('Could not load prompts from database, using defaults')
-        systemPrompt = defaultSystemPrompt
+        console.warn('Could not load prompts from database, using canonical defaults')
       } else {
-        // Parse prompts from database
         const promptsData: Record<string, string> = typeof settings.setting_value === 'string'
           ? JSON.parse(settings.setting_value)
           : settings.setting_value
-        
-        systemPrompt = promptsData.main || defaultSystemPrompt
-        
-        // Also load transformation prompt if available
-        if (promptsData.transform) {
-          transformationPrompt = promptsData.transform
-            .replace('{target_audience}', target_audience)
-            .replace('{content_type}', content_type)
+
+        prompts = {
+          main: promptsData.main || CANONICAL_BRAND_PROMPTS.main,
+          transform: promptsData.transform || CANONICAL_BRAND_PROMPTS.transform,
+          justification: promptsData.justification || CANONICAL_BRAND_PROMPTS.justification,
         }
       }
     } catch (error) {
       console.error('Error loading prompts:', error)
-      systemPrompt = defaultSystemPrompt
-    }
-    
-    // Fallback to default prompts if database prompt not available
-    if (!transformationPrompt) {
-      switch (content_type) {
-        case 'marketing':
-          transformationPrompt = `Transform this content into compelling marketing copy for ${target_audience}:`
-          break
-        case 'email':
-          transformationPrompt = `Transform this content into a professional email for ${target_audience}:`
-          break
-        case 'social':
-          transformationPrompt = `Transform this content for social media targeting ${target_audience}:`
-          break
-        case 'blog':
-          transformationPrompt = `Transform this content into engaging blog content for ${target_audience}:`
-          break
-        case 'website':
-          transformationPrompt = `Transform this content for website copy targeting ${target_audience}:`
-          break
-        case 'product':
-          transformationPrompt = `Transform this content into compelling product descriptions for ${target_audience}:`
-          break
-        default:
-          transformationPrompt = `Transform this content to match Beforest's brand voice for ${target_audience}:`
-      }
     }
 
-    const fullPrompt = `${transformationPrompt}
+    const promptVariables = {
+      original_content,
+      content_type,
+      target_audience,
+      additional_context,
+    }
+    let fullPrompt = renderBrandPrompt(prompts.transform, promptVariables)
 
-Original content: "${original_content}"
-
-${additional_context ? `Additional context: ${additional_context}` : ''}
-
-Please transform this content to perfectly embody Beforest's brand voice while being optimized for the target audience. Maintain the core message but enhance the brand alignment.`
+    // Keep older custom prompt templates safe even if they omit the content variable.
+    if (!fullPrompt.includes(original_content)) {
+      fullPrompt += `\n\nOriginal content:\n${original_content}`
+    }
 
     // Generate transformation
     const transformed_content = await createChatCompletion({
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: prompts.main },
         { role: 'user', content: fullPrompt }
       ],
-      maxTokens: 2000
+      // Kimi-K2.6 counts hidden reasoning and visible text in the same budget.
+      maxTokens: 8000
     })
 
     const processingTime = Date.now() - startTime
@@ -140,31 +96,40 @@ Please transform this content to perfectly embody Beforest's brand voice while b
     const transformedLength = transformed_content.length
     const lengthChangePercent = ((transformedLength - originalLength) / originalLength) * 100
 
-    // Calculate a simple quality score based on transformation metrics
-    const qualityScore = calculateQualityScore(
-      originalLength,
-      transformedLength,
-      lengthChangePercent,
-      content_type
-    )
+    let justificationAnalysis
+    try {
+      const justificationPrompt = renderBrandPrompt(prompts.justification, {
+        ...promptVariables,
+        transformed_content,
+      })
+      const rawJustification = await createChatCompletion({
+        messages: [
+          { role: 'system', content: 'You are a strict brand editor. Return valid JSON only, with no Markdown or surrounding commentary.' },
+          { role: 'user', content: justificationPrompt },
+        ],
+        maxTokens: 4000,
+      })
+      justificationAnalysis = parseJustification(rawJustification)
+    } catch (error) {
+      console.error('Could not generate structured justification:', error)
+      justificationAnalysis = {
+        brand_elements_applied: [],
+        audience_optimization: `Written for ${target_audience}`,
+        tone_adjustments: [],
+        quality_score: 3,
+      }
+    }
 
-    // Generate justification for the transformation
+    const qualityScore = justificationAnalysis.quality_score
     const justification = {
+      ...justificationAnalysis,
       content_type,
       target_audience,
       original_length: originalLength,
       transformed_length: transformedLength,
       length_change_percent: Math.round(lengthChangePercent * 100) / 100,
       processing_time_ms: processingTime,
-      brand_elements_applied: [
-        'authentic_tone',
-        'warm_language',
-        'premium_positioning',
-        'accessibility',
-        'sustainability_focus'
-      ],
-      audience_optimization: `Optimized for ${target_audience}`,
-      transformation_type: content_type
+      transformation_type: content_type,
     }
 
     // Save transformation to database
@@ -234,7 +199,6 @@ Please transform this content to perfectly embody Beforest's brand voice while b
     )
   }
 }
-
 // Get transformation history
 export async function GET(request: NextRequest) {
   try {
@@ -292,37 +256,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
-
-// Helper function to calculate quality score
-function calculateQualityScore(
-  originalLength: number,
-  transformedLength: number,
-  lengthChangePercent: number,
-  contentType: string
-): number {
-  let score = 3.0 // Base score
-  
-  // Length optimization scoring
-  if (Math.abs(lengthChangePercent) < 20) {
-    score += 0.5 // Good length preservation
-  } else if (Math.abs(lengthChangePercent) > 50) {
-    score -= 0.3 // Significant length change
-  }
-  
-  // Content type specific scoring
-  switch (contentType) {
-    case 'social':
-      if (transformedLength <= 280) score += 0.3 // Twitter optimized
-      break
-    case 'email':
-      if (transformedLength > originalLength * 0.8) score += 0.2 // Good detail retention
-      break
-    case 'marketing':
-      if (transformedLength > originalLength) score += 0.2 // Enhanced for marketing
-      break
-  }
-  
-  // Ensure score is within bounds
-  return Math.max(1.0, Math.min(5.0, Math.round(score * 100) / 100))
 }

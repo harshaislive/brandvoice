@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { ChevronRight, Copy, FileText, LoaderCircle, PenLine, RotateCcw, Sparkles, TriangleAlert, Users } from 'lucide-react'
+import { ChevronRight, Copy, FileText, LoaderCircle, MessageSquareText, PenLine, RotateCcw, Sparkles, TriangleAlert, Users } from 'lucide-react'
 import { Navigation } from '@/components/layout/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -86,6 +86,7 @@ export default function TransformPage() {
   const [customContentType, setCustomContentType] = useState('')
   const [targetAudience, setTargetAudience] = useState('')
   const [customAudience, setCustomAudience] = useState('')
+  const [additionalContext, setAdditionalContext] = useState('')
   const [isTransforming, setIsTransforming] = useState(false)
   const [result, setResult] = useState<TransformResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -125,7 +126,7 @@ export default function TransformPage() {
       const response = await fetch('/api/transform', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ original_content: originalContent, content_type: finalContentType, target_audience: finalAudience }),
+        body: JSON.stringify({ original_content: originalContent, content_type: finalContentType, target_audience: finalAudience, additional_context: additionalContext.trim() || undefined }),
       })
       if (!response.ok) {
         const body = await response.json().catch(() => null)
@@ -154,6 +155,7 @@ export default function TransformPage() {
     setCustomContentType('')
     setTargetAudience('')
     setCustomAudience('')
+    setAdditionalContext('')
     setResult(null)
     setError(null)
   }
@@ -210,6 +212,11 @@ export default function TransformPage() {
             {contentType === 'custom' ? <Input value={customContentType} onChange={(event) => setCustomContentType(event.target.value)} placeholder="Describe the content type" className="h-11 bg-[#faf8f2]" /> : null}
           </div>
         ) : null}
+
+        <div className="relative mt-3">
+          <MessageSquareText className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#777168]" strokeWidth={1.6} />
+          <Input value={additionalContext} onChange={(event) => setAdditionalContext(event.target.value)} maxLength={500} placeholder="Optional context — intent, facts to preserve, or a specific call to action" className="h-11 border-[#d8d0c3] bg-[#faf8f2] pl-10 shadow-none" />
+        </div>
 
         <section className="mt-3 grid gap-3 lg:grid-cols-[1.28fr_0.95fr]" aria-label="Transformation workspace">
           <div className="flex min-h-[390px] flex-col rounded-[10px] border border-[#ded7cb] bg-[#faf8f2]">

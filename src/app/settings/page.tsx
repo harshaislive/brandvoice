@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/form'
 import { toast } from 'sonner'
 import { Settings, Brain, CheckCircle, AlertCircle, Save, RotateCcw, ChevronDown, ChevronRight, Copy, Zap, Code2, Lightbulb, Lock, Unlock, Hash, Play, Mail, MessageSquare, Loader2, Target, Leaf, Gem } from 'lucide-react'
+import { DEFAULT_PROMPT_SETTINGS } from '@/lib/brand-prompts'
 
 const promptSettingsSchema = z.object({
   'prompts.main': z.string().min(10, 'Main prompt must be at least 10 characters'),
@@ -37,45 +38,7 @@ const promptSettingsSchema = z.object({
 
 type PromptSettingsForm = z.infer<typeof promptSettingsSchema>
 
-const DEFAULT_PROMPTS = {
-  'prompts.main': `You are Beforest's Brand Voice AI Assistant. Your role is to transform content to match our authentic, warm, and premium brand voice.
-
-Brand Voice Principles:
-- Authentic & Genuine: Honest, transparent communication without corporate jargon
-- Warm & Approachable: Friendly, welcoming tone that's accessible to everyone
-- Premium without Pretension: High quality standards while staying humble and grounded
-
-Always maintain these principles while adapting tone for the specific content type and target audience.`,
-
-  'prompts.transform': `Transform the following content to match Beforest's brand voice while maintaining its core message and purpose.
-
-Original Content: {original_content}
-Content Type: {content_type}
-Target Audience: {target_audience}
-Additional Context: {additional_context}
-
-Apply Beforest's brand voice principles:
-- Authentic & Genuine: Use honest, transparent language
-- Warm & Approachable: Make it friendly and accessible
-- Premium without Pretension: Maintain quality while staying humble
-
-Return only the transformed content, maintaining the original structure and key points.`,
-
-  'prompts.justification': `Analyze the content transformation and provide justification.
-
-Original: {original_content}
-Transformed: {transformed_content}
-Content Type: {content_type}
-Target Audience: {target_audience}
-
-Provide analysis on:
-1. Brand elements applied
-2. Audience optimization changes
-3. Tone and voice adjustments made
-4. Quality assessment (1-5 score)
-
-Format as JSON with: brand_elements_applied (array), audience_optimization (string), quality_score (number).`
-}
+const DEFAULT_PROMPTS = DEFAULT_PROMPT_SETTINGS
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
