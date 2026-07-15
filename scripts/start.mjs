@@ -19,7 +19,11 @@ if (!isDockerStandalone) {
 
 const server = spawn(process.execPath, [serverPath], {
   stdio: 'inherit',
-  env: process.env,
+  env: {
+    ...process.env,
+    HOSTNAME: '0.0.0.0',
+    PORT: process.env.PORT || '3000',
+  },
 })
 
 server.on('exit', (code, signal) => {
