@@ -296,7 +296,7 @@ export default function SettingsPage() {
     return (
        <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="pt-16 lg:pt-0 lg:ml-64 p-6 sm:p-12 flex items-center justify-center">
+        <main className="flex min-h-screen items-center justify-center px-6 pt-[82px]">
            <div className="flex flex-col items-center gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-muted-foreground font-serif">Loading studio configuration...</p>
@@ -310,16 +310,17 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-16 lg:pt-0 lg:ml-64 min-h-screen flex flex-col">
+      <main className="mx-auto min-h-screen max-w-[1540px] px-5 pb-16 pt-[118px] sm:px-8 lg:px-[52px]">
         {/* Header */}
-         <div className="px-6 py-8 sm:px-12 border-b border-border/40 bg-background/50 backdrop-blur-sm sticky top-0 z-10">
-           <div className="max-w-6xl mx-auto flex items-end justify-between">
+         <div className="border-b border-[#d8d0c3] pb-7">
+           <div className="flex items-end justify-between gap-5">
               <div>
-                <h1 className="text-3xl sm:text-4xl font-serif font-light text-foreground mb-2">
-                  Configuration
+                <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.24em] text-[#496a50]">Voice system</p>
+                <h1 className="font-serif text-[42px] font-light tracking-[-0.02em] text-[#26372b] sm:text-[54px]">
+                  Shape the Beforest voice.
                 </h1>
-                <p className="text-muted-foreground font-light text-sm">
-                  System Prompts & Behavior
+                <p className="mt-3 text-[15px] text-[#6f6a61]">
+                  Review prompts, refine behavior, and test how the voice responds.
                 </p>
               </div>
               
@@ -344,11 +345,11 @@ export default function SettingsPage() {
            </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-           <div className="max-w-6xl mx-auto p-6 sm:p-12 space-y-12">
+        <div>
+           <div className="space-y-12 pt-8">
               
               {/* Status Bar */}
-              <div className="flex items-center justify-between p-4 bg-secondary/10 rounded-lg border border-border/50">
+              <div className="flex items-center justify-between rounded-[10px] border border-[#ded7cb] bg-[#faf8f2] p-4">
                  <div className="flex items-center gap-3">
                     {isUsingDefaults ? (
                        <AlertCircle className="h-4 w-4 text-amber-600" />

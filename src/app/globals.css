@@ -60,7 +60,7 @@
   font-display: swap;
 }
 
-/* Use Serif as default to enforce Editorial Style */
+/* Beforest uses the Arizona family across editorial and product UI. */
 :root {
   font-family: 'ABC Arizona Flare', serif;
 }
@@ -111,25 +111,25 @@
 :root {
   --radius: 0.625rem;
   /* Beforest Brand Colors */
-  --background: #fdfbf7; /* off-white */
-  --foreground: #342e29; /* dark-earth */
-  --card: #fdfbf7; /* off-white */
-  --card-foreground: #342e29; /* dark-earth */
-  --popover: #fdfbf7; /* off-white */
-  --popover-foreground: #342e29; /* dark-earth */
-  --primary: #344736; /* forest-green */
-  --primary-foreground: #fdfbf7; /* off-white */
-  --secondary: #e7e4df; /* soft-gray */
-  --secondary-foreground: #342e29; /* dark-earth */
-  --muted: #e7e4df; /* soft-gray */
-  --muted-foreground: #51514d; /* charcoal-gray */
-  --accent: #b8dc99; /* soft-green */
-  --accent-foreground: #342e29; /* dark-earth */
+  --background: #f4eee3;
+  --foreground: #2c2924;
+  --card: #faf8f2;
+  --card-foreground: #2c2924;
+  --popover: #faf8f2;
+  --popover-foreground: #2c2924;
+  --primary: #314536;
+  --primary-foreground: #faf8f2;
+  --secondary: #ebe4d8;
+  --secondary-foreground: #2c2924;
+  --muted: #ebe4d8;
+  --muted-foreground: #6f6a61;
+  --accent: #dce5d7;
+  --accent-foreground: #26372b;
   --destructive: #86312b; /* rich-red */
   --destructive-foreground: #fdfbf7; /* off-white */
-  --border: #e7e4df; /* soft-gray */
-  --input: #e7e4df; /* soft-gray */
-  --ring: #344736; /* forest-green */
+  --border: #ded7cb;
+  --input: #d8d0c3;
+  --ring: #496a50;
   --chart-1: #344736; /* forest-green */
   --chart-2: #ff774a; /* coral-orange */
   --chart-3: #002140; /* deep-blue */
@@ -191,6 +191,8 @@
     padding: 0;
     height: 100%;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   #__next {
     height: 100%;

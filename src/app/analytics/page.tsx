@@ -125,7 +125,7 @@ export default function AnalyticsPage() {
      return (
         <div className="min-h-screen bg-background">
            <Navigation />
-           <main className="pt-16 lg:pt-0 lg:ml-64 p-6 sm:p-12">
+           <main className="mx-auto max-w-[1540px] px-6 pb-16 pt-[118px] lg:px-[52px]">
               <div className="max-w-6xl mx-auto space-y-8">
                  <div className="flex items-center justify-between">
                     <Skeleton className="h-12 w-64" />
@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-16 lg:pt-0 lg:ml-64 p-6 sm:p-12">
+      <main className="mx-auto max-w-[1540px] px-6 pb-16 pt-[118px] lg:px-[52px]">
         <div className="max-w-6xl mx-auto">
            {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">

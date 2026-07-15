@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { CirclePlus, ShieldCheck, UserRound } from 'lucide-react'
 
 type ManagedUser = {
   id: string
@@ -80,37 +81,37 @@ export default function UsersPage() {
   if (authLoading) return null
 
   if (!user || user.role !== 'admin') {
-    return <div className="min-h-screen bg-background"><Navigation /><main className="pt-24 lg:ml-[280px] p-8"><h1 className="text-2xl font-serif">Admin access required</h1></main></div>
+    return <div className="min-h-screen bg-[#f4eee3]"><Navigation /><main className="mx-auto max-w-[1540px] px-6 pt-[126px] lg:px-[52px]"><h1 className="font-serif text-4xl text-[#26372b]">Admin access required</h1></main></div>
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f4eee3] text-[#2c2924]">
       <Navigation />
-      <main className="pt-20 lg:ml-[280px] p-6 sm:p-12">
-        <div className="mx-auto max-w-5xl space-y-10">
+      <main className="mx-auto max-w-[1540px] px-5 pb-16 pt-[118px] sm:px-8 lg:px-[52px]">
+        <div className="space-y-10">
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Beforest administration</p>
-            <h1 className="mt-3 text-4xl font-serif">Manage users</h1>
-            <p className="mt-2 text-muted-foreground">Create invitation-only accounts and disable access when needed.</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-[#496a50]">Beforest administration</p>
+            <h1 className="mt-3 font-serif text-[42px] font-light tracking-[-0.02em] text-[#26372b] sm:text-[54px]">The people with access.</h1>
+            <p className="mt-3 max-w-xl text-[15px] leading-7 text-[#6f6a61]">Create invitation-only accounts, then enable or pause access whenever you need to.</p>
           </div>
 
-          <form onSubmit={createUser} className="grid gap-4 rounded-xl border border-border/60 bg-card p-6 sm:grid-cols-2">
-            <div className="sm:col-span-2"><h2 className="text-xl font-serif">Create an account</h2></div>
-            <div><Label htmlFor="email">Email</Label><Input id="email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div><Label htmlFor="username">Username</Label><Input id="username" required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} /></div>
-            <div><Label htmlFor="displayName">Display name</Label><Input id="displayName" required value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} /></div>
-            <div><Label htmlFor="password">Temporary password</Label><Input id="password" type="password" minLength={8} required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
-            <div className="sm:col-span-2"><Button type="submit" disabled={isSaving}>{isSaving ? 'Creating…' : 'Create account'}</Button></div>
+          <form onSubmit={createUser} className="grid gap-5 rounded-[10px] border border-[#ded7cb] bg-[#faf8f2] p-5 sm:grid-cols-2 sm:p-7 lg:grid-cols-4">
+            <div className="flex items-center gap-3 sm:col-span-2 lg:col-span-4"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#dce5d7] text-[#314536]"><CirclePlus className="h-4 w-4" strokeWidth={1.7} /></span><div><h2 className="text-lg font-medium">Create an account</h2><p className="text-xs text-[#817b71]">Share the temporary password securely.</p></div></div>
+            <div><Label htmlFor="email" className="text-xs text-[#625f58]">Email</Label><Input id="email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5 h-11 border-[#d8d0c3] bg-[#fdfbf7] shadow-none" /></div>
+            <div><Label htmlFor="username" className="text-xs text-[#625f58]">Username</Label><Input id="username" required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className="mt-1.5 h-11 border-[#d8d0c3] bg-[#fdfbf7] shadow-none" /></div>
+            <div><Label htmlFor="displayName" className="text-xs text-[#625f58]">Display name</Label><Input id="displayName" required value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="mt-1.5 h-11 border-[#d8d0c3] bg-[#fdfbf7] shadow-none" /></div>
+            <div><Label htmlFor="password" className="text-xs text-[#625f58]">Temporary password</Label><Input id="password" type="password" minLength={8} required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="mt-1.5 h-11 border-[#d8d0c3] bg-[#fdfbf7] shadow-none" /></div>
+            <div className="sm:col-span-2 lg:col-span-4"><Button type="submit" disabled={isSaving} className="h-11 bg-[#3b6345] px-6 shadow-none hover:bg-[#314f39]">{isSaving ? 'Creating…' : 'Create account'}</Button></div>
           </form>
 
           {notice && <p className="text-sm text-green-700">{notice}</p>}
           {error && <p className="text-sm text-red-700">{error}</p>}
 
-          <section className="space-y-4">
-            <h2 className="text-xl font-serif">Accounts</h2>
-            <div className="overflow-x-auto rounded-xl border border-border/60">
-              <table className="w-full text-left text-sm"><thead className="border-b bg-muted/30"><tr><th className="p-4">User</th><th className="p-4">Created</th><th className="p-4">Last login</th><th className="p-4">Status</th><th className="p-4"></th></tr></thead><tbody>
-                {users.map((managedUser) => <tr key={managedUser.id} className="border-b last:border-0"><td className="p-4"><div className="font-medium">{managedUser.display_name}</div><div className="text-muted-foreground">{managedUser.email}</div></td><td className="p-4 text-muted-foreground">{new Date(managedUser.created_at).toLocaleDateString()}</td><td className="p-4 text-muted-foreground">{managedUser.last_login ? new Date(managedUser.last_login).toLocaleDateString() : 'Never'}</td><td className="p-4">{managedUser.role === 'admin' ? 'Admin' : managedUser.is_active ? 'Active' : 'Disabled'}</td><td className="p-4 text-right">{managedUser.role !== 'admin' && <Button variant="outline" size="sm" onClick={() => void setActive(managedUser)}>{managedUser.is_active ? 'Disable' : 'Enable'}</Button>}</td></tr>)}
+          <section>
+            <div className="flex items-center justify-between border-b border-[#d8d0c3] pb-3"><h2 className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#496a50]">Accounts</h2><span className="text-xs text-[#817b71]">{users.length} total</span></div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-left text-sm"><thead className="border-b border-[#d8d0c3] text-[10px] uppercase tracking-[0.18em] text-[#817b71]"><tr><th className="px-2 py-3 font-medium">User</th><th className="p-3 font-medium">Created</th><th className="p-3 font-medium">Last login</th><th className="p-3 font-medium">Status</th><th className="p-3"></th></tr></thead><tbody>
+                {users.map((managedUser) => <tr key={managedUser.id} className="border-b border-[#d8d0c3] transition-colors hover:bg-[#f8f4ec]"><td className="px-2 py-4"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e7e1d6] text-[#496a50]">{managedUser.role === 'admin' ? <ShieldCheck className="h-4 w-4" /> : <UserRound className="h-4 w-4" />}</span><div><div className="font-medium">{managedUser.display_name}</div><div className="text-xs text-[#817b71]">{managedUser.email}</div></div></div></td><td className="p-3 text-[#6f6a61]">{new Date(managedUser.created_at).toLocaleDateString()}</td><td className="p-3 text-[#6f6a61]">{managedUser.last_login ? new Date(managedUser.last_login).toLocaleDateString() : 'Never'}</td><td className="p-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs ${managedUser.role === 'admin' || managedUser.is_active ? 'bg-[#dce5d7] text-[#314536]' : 'bg-[#eaded9] text-[#7e4938]'}`}>{managedUser.role === 'admin' ? 'Admin' : managedUser.is_active ? 'Active' : 'Paused'}</span></td><td className="p-3 text-right">{managedUser.role !== 'admin' && <Button variant="outline" size="sm" onClick={() => void setActive(managedUser)} className="border-[#cfc6b8] bg-transparent">{managedUser.is_active ? 'Pause' : 'Enable'}</Button>}</td></tr>)}
               </tbody></table>
             </div>
           </section>
