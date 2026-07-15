@@ -2,6 +2,24 @@ import { OpenAI } from 'openai'
 
 let openai: OpenAI | undefined
 
+function getAzureClientConfig(endpoint: string, deployment: string, apiVersion: string) {
+  const normalizedEndpoint = endpoint.replace(/\/+$/, '')
+  const usesV1Endpoint = /\/openai\/v1$/i.test(normalizedEndpoint)
+
+  if (usesV1Endpoint) {
+    return {
+      baseURL: normalizedEndpoint,
+      usesV1Endpoint,
+    }
+  }
+
+  return {
+    baseURL: `${normalizedEndpoint}/openai/deployments/${encodeURIComponent(deployment)}`,
+    defaultQuery: { 'api-version': apiVersion },
+    usesV1Endpoint,
+  }
+}
+
 function getOpenAIClient(): OpenAI {
   const apiKey = process.env.AZURE_OPENAI_KEY
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT
@@ -13,10 +31,11 @@ function getOpenAIClient(): OpenAI {
   }
 
   if (!openai) {
+    const clientConfig = getAzureClientConfig(endpoint, deployment, apiVersion)
     openai = new OpenAI({
       apiKey,
-      baseURL: `${endpoint.replace(/\/$/, '')}/openai/deployments/${deployment}`,
-      defaultQuery: { 'api-version': apiVersion },
+      baseURL: clientConfig.baseURL,
+      defaultQuery: clientConfig.defaultQuery,
       defaultHeaders: { 'api-key': apiKey },
     })
   }
@@ -43,12 +62,12 @@ export async function createStreamingChatCompletion({
     console.log('- Endpoint:', process.env.AZURE_OPENAI_ENDPOINT)
     console.log('- Deployment:', process.env.AZURE_OPENAI_DEPLOYMENT_NAME)
     console.log('- API Version:', process.env.AZURE_OPENAI_API_VERSION)
-    console.log('- Full URL:', `${process.env.AZURE_OPENAI_ENDPOINT}openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_NAME}`)
+    console.log('- Endpoint mode:', /\/openai\/v1\/?$/i.test(process.env.AZURE_OPENAI_ENDPOINT || '') ? 'Azure OpenAI v1' : 'Azure deployment API')
     
     const requestBody: Record<string, unknown> = {
       model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
       messages,
-      max_tokens: maxTokens,
+      max_completion_tokens: maxTokens,
       temperature: 1,
       top_p: 1,
       stream: true,
@@ -93,7 +112,7 @@ export async function createChatCompletion({
     const completion = await getOpenAIClient().chat.completions.create({
       model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
       messages,
-      max_tokens: maxTokens,
+      max_completion_tokens: maxTokens,
       temperature: 1,
       top_p: 1,
     })
