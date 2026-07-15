@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import postgres from 'postgres'
+import bcrypt from 'bcrypt'
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is required to run database migrations')
@@ -18,6 +19,25 @@ try {
     await transaction`select pg_advisory_xact_lock(hashtext('brandvoice_schema_migration'))`
     await transaction.unsafe(migration)
   })
+
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+    const email = process.env.ADMIN_EMAIL.trim().toLowerCase()
+    const passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12)
+    const localPart = email.split('@')[0].replace(/[^a-z0-9_-]/g, '-').slice(0, 40) || 'admin'
+    const [existing] = await sql`SELECT id FROM public.users WHERE email = ${email} LIMIT 1`
+
+    if (existing) {
+      await sql`UPDATE public.users SET role = 'admin' WHERE id = ${existing.id}`
+    } else {
+      await sql`
+        INSERT INTO public.users (email, username, display_name, password_hash, role)
+        VALUES (${email}, ${localPart}, ${localPart}, ${passwordHash}, 'admin')
+        ON CONFLICT (email) DO UPDATE SET role = 'admin'
+      `
+    }
+
+    console.log(`Admin account ready for ${email}`)
+  }
   console.log('Database migration completed')
 } finally {
   await sql.end()

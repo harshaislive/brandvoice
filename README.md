@@ -27,9 +27,14 @@ AZURE_OPENAI_DEPLOYMENT_NAME=...
 AZURE_OPENAI_API_VERSION=2024-10-21
 JWT_SECRET_KEY=...
 SETTINGS_PASSCODE=...
+# Optional on first deployment: creates/promotes this admin account
+ADMIN_EMAIL=admin@beforest.co
+ADMIN_PASSWORD=...
 ```
 
 Use the PostgreSQL resource's internal URL; do not expose the database publicly. The container runs the idempotent schema migration before starting the server. Route the application domain to port `3000`.
+
+Public registration is disabled. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` for the first migration to bootstrap an administrator, then use **Users** in the app to create invitation-only accounts. The bootstrap variables can be removed after the first successful deployment; the admin account remains in PostgreSQL.
 
 Configure scheduled PostgreSQL backups in Coolify. The application container is stateless and does not require persistent storage.
 

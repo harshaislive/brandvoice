@@ -93,3 +93,13 @@ export async function requireAuth(request: NextRequest) {
   
   return user
 }
+
+export async function requireAdmin(request: NextRequest) {
+  const user = await requireAuth(request)
+
+  if (user.role !== 'admin') {
+    throw new Error('Forbidden')
+  }
+
+  return user
+}

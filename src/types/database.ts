@@ -6,6 +6,7 @@ export interface User {
   email: string
   display_name: string
   password_hash: string
+  role: 'admin' | 'user'
   created_at: string
   last_login: string | null
   is_active: boolean
@@ -70,6 +71,7 @@ export interface AuthResponse {
     email: string
     username: string
     displayName: string
+    role: 'admin' | 'user'
   }
   token: string
 }

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ChevronRight, History, LogOut, Menu, Settings, Zap } from 'lucide-react'
+import { ChevronRight, History, LogOut, Menu, Settings, UserRoundCog, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useAuth } from '@/contexts/auth-context'
@@ -94,6 +94,23 @@ export function Navigation({ preview = false }: { preview?: boolean }) {
             </Button>
           )
         })}
+        {user?.role === 'admin' && (
+          <Button
+            asChild
+            variant="ghost"
+            onClick={onItemClick}
+            className={`h-12 w-full justify-start gap-4 rounded-xl px-4 text-[15px] font-medium transition-colors ${
+              pathname.startsWith('/admin/users')
+                ? 'bg-[#3d5d43] text-[#f4eee4] hover:bg-[#3d5d43] hover:text-[#f4eee4]'
+                : 'text-[#d7cfc2]/80 hover:bg-[#3a3530] hover:text-[#f4eee4]'
+            }`}
+          >
+            <Link href="/admin/users">
+              <UserRoundCog className="h-5 w-5" strokeWidth={1.7} />
+              <span>Users</span>
+            </Link>
+          </Button>
+        )}
       </nav>
 
       {showRecent && (

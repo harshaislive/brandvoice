@@ -4,10 +4,16 @@ CREATE TABLE IF NOT EXISTS public.users (
   email text NOT NULL UNIQUE,
   display_name text NOT NULL,
   password_hash text NOT NULL,
+  role text NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
   created_at timestamptz NOT NULL DEFAULT now(),
   last_login timestamptz,
   is_active boolean NOT NULL DEFAULT true
 );
+
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'user';
+
+CREATE INDEX IF NOT EXISTS users_role_idx ON public.users (role);
 
 CREATE TABLE IF NOT EXISTS public.conversations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

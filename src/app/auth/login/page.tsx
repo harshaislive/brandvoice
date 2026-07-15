@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
@@ -138,15 +137,9 @@ export default function LoginPage() {
             </form>
           </Form>
 
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">Don&apos;t have an account? </span>
-            <Link 
-              href="/auth/register" 
-              className="font-medium text-primary hover:text-primary/80 transition-colors underline underline-offset-4"
-            >
-              Sign up for free
-            </Link>
-          </div>
+          <p className="text-center text-sm text-muted-foreground">
+            Access is invitation-only. Ask a Beforest administrator for an account.
+          </p>
         </div>
       </div>
     </div>

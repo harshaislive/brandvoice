@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         username: user.username,
-        displayName: user.display_name
+        displayName: user.display_name,
+        role: user.role
       },
       token
     }
