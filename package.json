@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "db:migrate": "node scripts/migrate.mjs",
-    "start": "npm run db:migrate && node .next/standalone/server.js",
+    "start": "npm run db:migrate && node scripts/start.mjs",
     "lint": "next lint"
   },
   "dependencies": {
