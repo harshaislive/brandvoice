@@ -1,39 +1,53 @@
-# Design QA — Option 3 editorial workspace
+# Design QA — Mobile draft-first transformer
 
 ## Reference and implementation
 
-- Reference: `C:/Users/harsh/.codex/generated_images/019f64fb-1a6c-7cd3-a01a-aacac258bd8e/exec-db470d20-167d-4c88-9404-4d2517d07c8c.png`
-- Implementation: `D:/AI Apps/brand_transformer/brandvoice/design-qa-implementation.png`
-- Viewport and state: 1440 × 1024, empty transform workspace with realistic recent work
-- Comparison method: reference and implementation opened together at original resolution with `view_image`
+- Source visual truth: `C:/Users/harsh/.codex/generated_images/019f64fb-1a6c-7cd3-a01a-aacac258bd8e/exec-b860e8e1-6d1e-44fe-a491-d5c4eea60641.png`
+- Browser-rendered implementation: `C:/Users/harsh/AppData/Local/Temp/brandvoice-mobile-fidelity-v9.png`
+- Full-view comparison: `C:/Users/harsh/AppData/Local/Temp/brandvoice-mobile-design-qa-comparison-final.png`
+- Focused loading evidence: `C:/Users/harsh/AppData/Local/Temp/brandvoice-mobile-loading-final-b.png`
+- Focused result evidence: `C:/Users/harsh/AppData/Local/Temp/brandvoice-mobile-after-result.png`
+- Viewport: 390 × 844
+- State: populated draft, selected audience and content type, optional context collapsed, primary action ready
 
-## Visible comparison
+## Full-view comparison evidence
 
-1. **Header and navigation — passed.** Horizontal logo/navigation structure, active underline, generous outer gutter, and light header treatment match the selected direction. The QA preview correctly shows `Preview` instead of fabricating a signed-in user.
-2. **Typography — passed.** ABC Arizona Flare is used across display and interface text. Heading scale, light editorial weight, compact labels, and body rhythm closely match the reference.
-3. **Palette and surfaces — passed.** Parchment background, paper work surfaces, forest text/actions, muted stone copy, and thin warm-grey borders are consistent with the reference. No gradients or decorative blobs remain.
-4. **Toolbar and editor proportions — passed.** Audience/content controls, right-aligned primary action, larger draft panel, and quieter result panel preserve the reference hierarchy. Disabled state is intentionally shown in the empty workflow.
-5. **Recent work — passed.** Open rows, thin separators, compact metadata, leading document icons, and trailing chevrons mirror the reference without card clutter.
+The reference and implementation were resized to the same 390 × 844 viewport and placed side by side. The implementation preserves the reference hierarchy: compact branded header, restrained title, draft-first writing surface, adjacent audience/type controls, collapsed context row, and a full-width action held at the bottom safe area.
+
+## Focused region comparison evidence
+
+Focused comparison was required for the persistent action and its processing state. Two browser frames captured the custom rotating loader and staggered dots, while the live region changed from `Transform draft` to `Shaping the voice… / Reading your draft`. The completed state moved to a copyable transformed result without removing the persistent action.
+
+## Required fidelity surfaces
+
+- Fonts and typography: passed. ABC Arizona Flare remains the only interface family. The light editorial heading, compact labels, readable 17px editor copy, and line height match the Beforest system.
+- Spacing and layout rhythm: passed. The 20px mobile gutter, warm bordered surfaces, 12–14px radii, 44px minimum controls, large editor, and safe-area action follow the selected direction. The implementation is slightly denser than the generated mock so context remains reachable on real mobile browser heights.
+- Colors and visual tokens: passed. Parchment, warm paper, forest action, charcoal copy, and warm-grey rules use the existing project tokens. No gradients or decorative effects were introduced.
+- Image quality and asset fidelity: passed. The existing Beforest logo is used directly. All interface symbols remain in the established Lucide icon system; there are no placeholder or hand-built visual assets.
+- Copy and content: passed. Mobile copy is concise and task-oriented: `Transform`, `Draft`, `Optional context`, `Transform draft`, and explicit processing language.
 
 ## Interaction and responsive QA
 
-- Draft input accepts text and updates the character count.
-- Audience and content type selectors work; selecting values enables Transform.
-- Mobile navigation opens and exposes all primary routes.
-- Desktop checked at 1440 × 1024 and mobile checked at 390 × 844.
-- Browser console contained no application errors during the tested workflow.
-- Sign-in screen was separately inspected at desktop width and uses the same brand typography and palette.
+- Entry route loaded at `/transform?preview=1&state=filled` with meaningful content and no framework overlay.
+- Draft input accepted text and updated the character count.
+- Audience and content type selections enabled the primary action.
+- Optional context expanded into a focused text area and collapsed cleanly.
+- Transform changed to an animated, high-contrast processing state with cycling status copy.
+- Completion scrolled to a copyable result and exposed Start again.
+- The fixed action measured `bottom: 844` in an `844px` viewport after the containing-block fix.
+- Desktop smoke test passed at 1280 × 900 with the original two-panel workspace preserved.
+- Fresh mobile and desktop console checks returned no application warnings or errors.
 
-## Copy differences
+## Comparison history
 
-- The product keeps the selected headline and subhead verbatim.
-- Authenticated navigation will show the real user and Admin-only Users route; the QA state shows `Preview` because no local authenticated session was fabricated.
-- The empty Transformed panel omits Copy until a result exists, which is more accurate than showing an unavailable action.
+1. P1 — the action bar was visually positioned after the controls instead of at the viewport bottom because inherited identity transforms created a containing block. Fixed by explicitly removing transforms from the mobile page ancestors. Post-fix browser geometry confirmed the action bottom equals the viewport height.
+2. P2 — loading inherited the disabled button's faded styling, making progress look inactive. Fixed by separating the loading accessibility state from the empty disabled state and keeping forest contrast during processing. Post-fix loading captures show a legible spinner, status label, and staggered dots.
+3. P2 — the editor initially expanded with content, pushing context out of reach. Fixed with an intentional 300px mobile editor and internal scrolling. Post-fix capture keeps the draft primary while showing controls and context above the persistent action.
+4. Final comparison found no remaining P0, P1, or P2 issues.
 
-## Remaining deviations
+## Follow-up polish
 
-- The generated reference includes a small custom document-and-leaf illustration. The implementation uses the existing Lucide document icon to stay inside the product's established icon library and avoid a fake hand-drawn asset.
-- Exact user name and Users navigation visibility depend on the authenticated account role.
+- P3: on very short browser heights, the Recent work heading may peek above the fixed action. This does not block the transform flow and can be tightened later if desired.
 
 ## Final result
 
