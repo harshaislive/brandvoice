@@ -80,7 +80,7 @@ export default function RegisterPage() {
       await login(data.email, data.password)
       
       toast.success('Account created successfully!')
-      router.push('/')
+      router.push('/transform')
     } catch (error) {
       console.error('Registration error:', error)
       toast.error(error instanceof Error ? error.message : 'Registration failed')

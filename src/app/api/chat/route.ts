@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createStreamingChatCompletion } from '@/lib/openai'
-import { supabase } from '@/lib/supabase'
+import { getDb } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { ChatRequest } from '@/types/database'
 
@@ -21,53 +21,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify conversation belongs to user
-    const { data: conversation, error: convError } = await supabase
-      .from('conversations')
-      .select('*')
-      .eq('id', conversationId)
-      .eq('user_id', user.id)
-      .single()
+    const sql = getDb()
+    const [conversation] = await sql`
+      SELECT id
+      FROM public.conversations
+      WHERE id = ${conversationId} AND user_id = ${user.id}
+      LIMIT 1
+    `
 
-    if (convError || !conversation) {
+    if (!conversation) {
       return NextResponse.json(
         { error: 'Conversation not found' }, 
         { status: 404 }
       )
     }
 
-    // Save user message to database
-    const { error: messageError } = await supabase
-      .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        role: 'user',
-        content: message,
-        timestamp: new Date().toISOString(),
-        metadata: context
-      })
-      .select()
-      .single()
-
-    if (messageError) {
-      console.error('Error saving user message:', messageError)
-      return NextResponse.json(
-        { error: 'Failed to save message' }, 
-        { status: 500 }
+    await sql`
+      INSERT INTO public.messages (conversation_id, role, content, metadata)
+      VALUES (
+        ${conversationId},
+        'user',
+        ${message},
+        ${context ? sql.json(JSON.parse(JSON.stringify(context))) : null}
       )
-    }
+    `
 
     // Get conversation history (last 20 messages for context)
-    const { data: messages, error: historyError } = await supabase
-      .from('messages')
-      .select('role, content')
-      .eq('conversation_id', conversationId)
-      .order('timestamp', { ascending: true })
-      .limit(20)
-
-    if (historyError) {
-      console.error('Error fetching conversation history:', historyError)
-    }
+    const messages = await sql<Array<{
+      role: 'system' | 'user' | 'assistant'
+      content: string
+    }>>`
+      SELECT role, content
+      FROM (
+        SELECT role, content, timestamp
+        FROM public.messages
+        WHERE conversation_id = ${conversationId}
+        ORDER BY timestamp DESC
+        LIMIT 20
+      ) recent_messages
+      ORDER BY timestamp ASC
+    `
 
     // Build chat completion request
     const systemPrompt = `You are an intelligent assistant powered by GPT-5. You are helpful, accurate, and engaging. 
@@ -83,8 +76,7 @@ For general questions, answer naturally and helpfully. Always respond directly t
 
     const chatMessages = [
       { role: 'system', content: systemPrompt },
-      ...(messages || []).map(m => ({ role: m.role, content: m.content })),
-      { role: 'user', content: message }
+      ...messages.map(m => ({ role: m.role, content: m.content }))
     ]
     
     // console.log('Chat messages being sent to AI:', JSON.stringify(chatMessages, null, 2))
@@ -149,30 +141,17 @@ For general questions, answer naturally and helpfully. Always respond directly t
           }
 
           // Save the complete assistant message
-          const { data: assistantMessage, error: responseError } = await supabase
-            .from('messages')
-            .insert({
-              conversation_id: conversationId,
-              role: 'assistant',
-              content: fullContent,
-              timestamp: new Date().toISOString()
-            })
-            .select()
-            .single()
+          const [assistantMessage] = await sql`
+            INSERT INTO public.messages (conversation_id, role, content)
+            VALUES (${conversationId}, 'assistant', ${fullContent})
+            RETURNING id
+          `
 
-          if (responseError) {
-            console.error('Error saving assistant message:', responseError)
-          }
-
-          // Update conversation activity - skip if column doesn't exist
-          try {
-            await supabase
-              .from('conversations')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', conversationId)
-          } catch {
-            console.log('Could not update conversation timestamp, table might not have updated_at column')
-          }
+          await sql`
+            UPDATE public.conversations
+            SET last_activity = now()
+            WHERE id = ${conversationId} AND user_id = ${user.id}
+          `
 
           // Send completion message
           const completionData = JSON.stringify({ 

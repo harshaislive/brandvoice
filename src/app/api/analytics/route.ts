@@ -1,12 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getDb } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
+
+type AnalyticsTransformation = {
+  id: string
+  created_at: string
+  content_type: string
+  target_audience: string
+  processing_time_ms: number | null
+  transformation_quality_score: number | null
+  length_change_percent: number | null
+  user_feedback: number | null
+  original_length: number
+  transformed_length: number
+}
 
 // Get analytics data for transformations
 export async function GET(request: NextRequest) {
   try {
+    const user = await requireAuth(request)
     const { searchParams } = new URL(request.url)
     const timeframe = searchParams.get('timeframe') || '7d' // 7d, 30d, 90d, 1y
-    const userEmail = searchParams.get('user_email')
     
     // Calculate date range
     const now = new Date()
@@ -29,25 +43,22 @@ export async function GET(request: NextRequest) {
         startDate.setDate(now.getDate() - 7)
     }
 
-    // Base query
-    let query = supabase
-      .from('beforest_transformations')
-      .select('*')
-      .gte('created_at', startDate.toISOString())
-
-    if (userEmail) {
-      query = query.eq('user_email', userEmail)
-    }
-
-    const { data: transformations, error } = await query
-
-    if (error) {
-      console.error('Error fetching analytics:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch analytics' }, 
-        { status: 500 }
-      )
-    }
+    const sql = getDb()
+    const transformations = await sql<AnalyticsTransformation[]>`
+      SELECT
+        id,
+        created_at,
+        content_type,
+        target_audience,
+        processing_time_ms,
+        transformation_quality_score,
+        length_change_percent,
+        user_feedback,
+        original_length,
+        transformed_length
+      FROM public.beforest_transformations
+      WHERE user_id = ${user.id} AND created_at >= ${startDate}
+    `
 
     // Calculate analytics
     const analytics = {
@@ -147,7 +158,10 @@ export async function GET(request: NextRequest) {
 
     // Top performing transformations (highest quality scores with feedback)
     analytics.top_performing_transformations = transformations
-      .filter(t => t.transformation_quality_score && t.user_feedback)
+      .filter((t): t is AnalyticsTransformation & {
+        transformation_quality_score: number
+        user_feedback: number
+      } => t.transformation_quality_score !== null && t.user_feedback !== null)
       .sort((a, b) => 
         (b.transformation_quality_score + b.user_feedback) - 
         (a.transformation_quality_score + a.user_feedback)
@@ -165,6 +179,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ analytics })
   } catch (error) {
     console.error('Analytics error:', error)
+
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     
     return NextResponse.json(
       { error: 'Failed to fetch analytics' }, 

@@ -86,6 +86,7 @@ export default function SettingsPage() {
   const [isUsingDefaults, setIsUsingDefaults] = useState(false)
   const [showPasscodeDialog, setShowPasscodeDialog] = useState(false)
   const [passcode, setPasscode] = useState('')
+  const [settingsPasscode, setSettingsPasscode] = useState('')
   const [showCommandPalette, setShowCommandPalette] = useState(false)
   const [commandQuery, setCommandQuery] = useState('')
   const [currentTextarea, setCurrentTextarea] = useState<HTMLTextAreaElement | null>(null)
@@ -146,7 +147,8 @@ export default function SettingsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Settings-Passcode': settingsPasscode
         },
         body: JSON.stringify({ settings: data }),
       })
@@ -225,17 +227,31 @@ export default function SettingsPage() {
       setShowPasscodeDialog(true)
     } else {
       setPreviewMode(true)
+      setSettingsPasscode('')
     }
   }
   
-  const verifyPasscode = () => {
-    const correctPasscode = process.env.NEXT_PUBLIC_PASS_CODE || '123456'
-    if (passcode === correctPasscode) {
+  const verifyPasscode = async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      const response = await fetch('/api/settings/access', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Settings-Passcode': passcode
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Invalid passcode')
+      }
+
+      setSettingsPasscode(passcode)
       setPreviewMode(false)
       setShowPasscodeDialog(false)
       setPasscode('')
       toast.success('Edit mode enabled')
-    } else {
+    } catch {
       toast.error('Invalid passcode')
       setPasscode('')
     }
@@ -564,7 +580,7 @@ export default function SettingsPage() {
                     maxLength={6}
                     value={passcode}
                     onChange={setPasscode}
-                    onComplete={verifyPasscode}
+                    onComplete={() => void verifyPasscode()}
                   >
                     <InputOTPGroup>
                       <InputOTPSlot index={0} />
@@ -575,7 +591,7 @@ export default function SettingsPage() {
                       <InputOTPSlot index={5} />
                     </InputOTPGroup>
                   </InputOTP>
-                  <Button onClick={verifyPasscode} className="w-full">Verify Access</Button>
+                  <Button onClick={() => void verifyPasscode()} className="w-full">Verify Access</Button>
               </div>
             </DialogContent>
         </Dialog>

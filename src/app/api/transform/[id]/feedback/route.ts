@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getDb } from '@/lib/db'
+import { requireAuth } from '@/lib/auth'
 
 // Submit feedback for a transformation
 export async function POST(
@@ -7,6 +8,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await requireAuth(request)
     const { id: transformationId } = await params
     const { feedback } = await request.json()
     
@@ -17,24 +19,13 @@ export async function POST(
       )
     }
 
-    // Update the transformation with user feedback
-    const { data: transformation, error } = await supabase
-      .from('beforest_transformations')
-      .update({ 
-        user_feedback: feedback,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', transformationId)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error updating feedback:', error)
-      return NextResponse.json(
-        { error: 'Failed to update feedback' }, 
-        { status: 500 }
-      )
-    }
+    const sql = getDb()
+    const [transformation] = await sql`
+      UPDATE public.beforest_transformations
+      SET user_feedback = ${feedback}
+      WHERE id = ${transformationId} AND user_id = ${user.id}
+      RETURNING id
+    `
 
     if (!transformation) {
       return NextResponse.json(
@@ -50,6 +41,10 @@ export async function POST(
     })
   } catch (error) {
     console.error('Feedback error:', error)
+
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     
     return NextResponse.json(
       { error: 'Failed to submit feedback' }, 

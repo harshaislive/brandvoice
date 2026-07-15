@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getDb } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 
 // Get user's conversations
@@ -7,19 +7,13 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth(request)
     
-    const { data: conversations, error } = await supabase
-      .from('conversations')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching conversations:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch conversations' }, 
-        { status: 500 }
-      )
-    }
+    const sql = getDb()
+    const conversations = await sql`
+      SELECT *
+      FROM public.conversations
+      WHERE user_id = ${user.id}
+      ORDER BY created_at DESC
+    `
 
     return NextResponse.json(conversations)
   } catch (error) {
@@ -53,24 +47,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { data: conversation, error } = await supabase
-      .from('conversations')
-      .insert({
-        user_id: user.id,
-        title,
-        mode,
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating conversation:', error)
-      return NextResponse.json(
-        { error: 'Failed to create conversation' }, 
-        { status: 500 }
-      )
+    if (mode !== 'chat' && mode !== 'transform') {
+      return NextResponse.json({ error: 'Invalid conversation mode' }, { status: 400 })
     }
+
+    const sql = getDb()
+    const [conversation] = await sql`
+      INSERT INTO public.conversations (user_id, title, mode)
+      VALUES (${user.id}, ${title}, ${mode})
+      RETURNING *
+    `
 
     return NextResponse.json(conversation, { status: 201 })
   } catch (error) {

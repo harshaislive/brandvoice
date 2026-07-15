@@ -1,13 +1,23 @@
 import { SignJWT, jwtVerify } from 'jose'
 import bcrypt from 'bcrypt'
 import { NextRequest } from 'next/server'
-import { supabase } from './supabase'
+import { getDb } from './db'
 import { User } from '@/types/database'
+
+function getJwtSecret(): Uint8Array {
+  const value = process.env.JWT_SECRET_KEY
+
+  if (!value || value.length < 32) {
+    throw new Error('JWT_SECRET_KEY must contain at least 32 characters')
+  }
+
+  return new TextEncoder().encode(value)
+}
 
 // JWT token verification
 export async function verifyToken(token: string): Promise<{ userId: string; email: string } | null> {
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY!)
+    const secret = getJwtSecret()
     const { payload } = await jwtVerify(token, secret)
     return payload as { userId: string; email: string }
   } catch (error) {
@@ -32,13 +42,15 @@ export async function getUserFromToken(request: NextRequest): Promise<User | nul
     }
 
     // Fetch user from database
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', decoded.userId)
-      .single()
+    const sql = getDb()
+    const [user] = await sql<User[]>`
+      SELECT *
+      FROM public.users
+      WHERE id = ${decoded.userId}
+      LIMIT 1
+    `
 
-    if (error || !user) {
+    if (!user) {
       return null
     }
 
@@ -62,7 +74,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 // Generate JWT token
 export async function generateToken(user: { id: string; email: string }): Promise<string> {
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY!)
+  const secret = getJwtSecret()
   
   return await new SignJWT({ userId: user.id, email: user.email })
     .setProtectedHeader({ alg: 'HS256' })

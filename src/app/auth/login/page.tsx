@@ -46,7 +46,7 @@ export default function LoginPage() {
     try {
       await login(data.email, data.password)
       toast.success('Logged in successfully!')
-      router.push('/')
+      router.push('/transform')
     } catch (error) {
       console.error('Login error:', error)
       toast.error(error instanceof Error ? error.message : 'Login failed')

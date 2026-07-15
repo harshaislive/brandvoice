@@ -1,14 +1,28 @@
 import { OpenAI } from 'openai'
 
-// Azure OpenAI client configuration
-export const openai = new OpenAI({
-  apiKey: process.env.AZURE_OPENAI_KEY,
-  baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_NAME}`,
-  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION },
-  defaultHeaders: {
-    'api-key': process.env.AZURE_OPENAI_KEY,
-  },
-})
+let openai: OpenAI | undefined
+
+function getOpenAIClient(): OpenAI {
+  const apiKey = process.env.AZURE_OPENAI_KEY
+  const endpoint = process.env.AZURE_OPENAI_ENDPOINT
+  const deployment = process.env.AZURE_OPENAI_DEPLOYMENT_NAME
+  const apiVersion = process.env.AZURE_OPENAI_API_VERSION
+
+  if (!apiKey || !endpoint || !deployment || !apiVersion) {
+    throw new Error('Azure OpenAI environment variables are incomplete')
+  }
+
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey,
+      baseURL: `${endpoint.replace(/\/$/, '')}/openai/deployments/${deployment}`,
+      defaultQuery: { 'api-version': apiVersion },
+      defaultHeaders: { 'api-key': apiKey },
+    })
+  }
+
+  return openai
+}
 
 // Streaming chat completion function with optional web search
 export async function createStreamingChatCompletion({
@@ -58,7 +72,7 @@ export async function createStreamingChatCompletion({
     */
 
     // @ts-expect-error - OpenAI SDK type mismatch with our custom Record type
-    const stream = await openai.chat.completions.create(requestBody)
+    const stream = await getOpenAIClient().chat.completions.create(requestBody)
 
     return stream
   } catch (error) {
@@ -76,7 +90,7 @@ export async function createChatCompletion({
   maxTokens?: number
 }) {
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
       messages,
       max_tokens: maxTokens,

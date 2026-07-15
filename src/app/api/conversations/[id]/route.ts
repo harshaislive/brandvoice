@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getDb } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 
 // Delete conversation
@@ -12,39 +12,15 @@ export async function DELETE(
     const params = await context.params
     const conversationId = params.id
 
-    // First check if the conversation belongs to the user
-    const { data: conversation, error: fetchError } = await supabase
-      .from('conversations')
-      .select('user_id')
-      .eq('id', conversationId)
-      .single()
+    const sql = getDb()
+    const deleted = await sql`
+      DELETE FROM public.conversations
+      WHERE id = ${conversationId} AND user_id = ${user.id}
+      RETURNING id
+    `
 
-    if (fetchError || !conversation) {
-      return NextResponse.json(
-        { error: 'Conversation not found' }, 
-        { status: 404 }
-      )
-    }
-
-    if (conversation.user_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 403 }
-      )
-    }
-
-    // Delete the conversation
-    const { error } = await supabase
-      .from('conversations')
-      .delete()
-      .eq('id', conversationId)
-
-    if (error) {
-      console.error('Error deleting conversation:', error)
-      return NextResponse.json(
-        { error: 'Failed to delete conversation' }, 
-        { status: 500 }
-      )
+    if (deleted.length === 0) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
     }
 
     return NextResponse.json({ success: true })
@@ -86,43 +62,16 @@ export async function PUT(
       )
     }
 
-    // First check if the conversation belongs to the user
-    const { data: conversation, error: fetchError } = await supabase
-      .from('conversations')
-      .select('user_id')
-      .eq('id', conversationId)
-      .single()
+    const sql = getDb()
+    const [updatedConversation] = await sql`
+      UPDATE public.conversations
+      SET title = ${title.trim()}
+      WHERE id = ${conversationId} AND user_id = ${user.id}
+      RETURNING *
+    `
 
-    if (fetchError || !conversation) {
-      return NextResponse.json(
-        { error: 'Conversation not found' }, 
-        { status: 404 }
-      )
-    }
-
-    if (conversation.user_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 403 }
-      )
-    }
-
-    // Update the conversation - let the database trigger handle timestamp
-    const { data: updatedConversation, error } = await supabase
-      .from('conversations')
-      .update({
-        title: title.trim()
-      })
-      .eq('id', conversationId)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error updating conversation:', error)
-      return NextResponse.json(
-        { error: 'Failed to update conversation', details: error.message }, 
-        { status: 500 }
-      )
+    if (!updatedConversation) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
     }
 
     console.log('PUT /api/conversations/[id] - Success:', updatedConversation)

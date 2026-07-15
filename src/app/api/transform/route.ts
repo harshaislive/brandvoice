@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createChatCompletion } from '@/lib/openai'
-import { supabase } from '@/lib/supabase'
+import { getDb } from '@/lib/db'
 import { getUserFromToken } from '@/lib/auth'
 import { TransformRequest, TransformResponse } from '@/types/database'
 
@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Get request metadata
-    const userIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null
+    const forwardedFor = request.headers.get('x-forwarded-for')
+    const userIP = forwardedFor?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || null
     const userAgent = request.headers.get('user-agent') || null
     const sessionId = request.headers.get('x-session-id') || null
 
@@ -58,21 +59,24 @@ Beforest brand characteristics:
 - Environmentally conscious messaging`
     
     try {
-      const { data: settings, error } = await supabase
-        .from('beforest_settings')
-        .select('setting_value')
-        .eq('setting_key', 'prompts')
-        .single()
+      const sql = getDb()
+      const [settings] = await sql<Array<{
+        setting_value: Record<string, string> | string
+      }>>`
+        SELECT setting_value
+        FROM public.beforest_settings
+        WHERE setting_key = 'prompts'
+        LIMIT 1
+      `
 
-      if (error || !settings) {
+      if (!settings) {
         console.warn('Could not load prompts from database, using defaults')
         systemPrompt = defaultSystemPrompt
       } else {
         // Parse prompts from database
-        let promptsData = settings.setting_value
-        if (typeof promptsData === 'string') {
-          promptsData = JSON.parse(promptsData)
-        }
+        const promptsData: Record<string, string> = typeof settings.setting_value === 'string'
+          ? JSON.parse(settings.setting_value)
+          : settings.setting_value
         
         systemPrompt = promptsData.main || defaultSystemPrompt
         
@@ -164,34 +168,47 @@ Please transform this content to perfectly embody Beforest's brand voice while b
     }
 
     // Save transformation to database
-    const { data: transformation, error: saveError } = await supabase
-      .from('beforest_transformations')
-      .insert({
+    const sql = getDb()
+    const [transformation] = await sql`
+      INSERT INTO public.beforest_transformations (
         original_content,
         content_type,
         target_audience,
         additional_context,
         transformed_content,
-        original_length: originalLength,
-        transformed_length: transformedLength,
-        length_change_percent: Math.round(lengthChangePercent * 100) / 100,
+        original_length,
+        transformed_length,
+        length_change_percent,
         justification,
-        user_ip: userIP,
-        user_agent: userAgent,
-        session_id: sessionId,
-        processing_time_ms: processingTime,
-        api_model_used: process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4',
-        transformation_quality_score: qualityScore,
-        user_email: user.email,
-        user_id: user.id
-      })
-      .select()
-      .single()
-
-    if (saveError) {
-      console.error('Error saving transformation:', saveError)
-      // Continue even if save fails
-    }
+        user_ip,
+        user_agent,
+        session_id,
+        processing_time_ms,
+        api_model_used,
+        transformation_quality_score,
+        user_email,
+        user_id
+      ) VALUES (
+        ${original_content},
+        ${content_type},
+        ${target_audience},
+        ${additional_context || null},
+        ${transformed_content},
+        ${originalLength},
+        ${transformedLength},
+        ${Math.round(lengthChangePercent * 100) / 100},
+        ${sql.json(justification)},
+        ${userIP},
+        ${userAgent},
+        ${sessionId},
+        ${processingTime},
+        ${process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4'},
+        ${qualityScore},
+        ${user.email},
+        ${user.id}
+      )
+      RETURNING id
+    `
 
     const response: TransformResponse = {
       transformed_content,
@@ -231,49 +248,40 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '20')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20') || 20, 1), 100)
+    const offset = Math.max(parseInt(searchParams.get('offset') || '0') || 0, 0)
     const contentType = searchParams.get('content_type')
     const targetAudience = searchParams.get('target_audience')
     
     console.log('History API - User ID:', user.id)
     console.log('History API - Query params:', { limit, offset, contentType, targetAudience })
     
-    let query = supabase
-      .from('beforest_transformations')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+    const sql = getDb()
+    const contentTypeFilter = contentType ? sql`AND content_type = ${contentType}` : sql``
+    const audienceFilter = targetAudience ? sql`AND target_audience = ${targetAudience}` : sql``
 
-    if (contentType) {
-      query = query.eq('content_type', contentType)
-    }
-    
-    if (targetAudience) {
-      query = query.eq('target_audience', targetAudience)
-    }
+    const transformations = await sql`
+      SELECT *
+      FROM public.beforest_transformations
+      WHERE user_id = ${user.id}
+        ${contentTypeFilter}
+        ${audienceFilter}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `
 
-    console.log('History API - Executing query...')
-    const { data: transformations, error } = await query
+    const [countRow] = await sql<{ count: number }[]>`
+      SELECT count(*)::integer AS count
+      FROM public.beforest_transformations
+      WHERE user_id = ${user.id}
+        ${contentTypeFilter}
+        ${audienceFilter}
+    `
+    const count = countRow?.count || 0
 
-    if (error) {
-      console.error('History API - Supabase error:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch transformations' }, 
-        { status: 500 }
-      )
-    }
-
-    // Get total count for this user (for debugging)
-    const { count } = await supabase
-      .from('beforest_transformations')
-      .select('id', { count: 'exact' })
-      .eq('user_id', user.id)
-
-    console.log('History API - Found transformations:', transformations?.length || 0)
+    console.log('History API - Found transformations:', transformations.length)
     console.log('History API - Total records for user:', count)
-    console.log('History API - Sample record dates:', transformations?.map(t => t.created_at).slice(0, 3))
+    console.log('History API - Sample record dates:', transformations.map(t => t.created_at).slice(0, 3))
 
     return NextResponse.json({ transformations, total_count: count })
   } catch (error) {

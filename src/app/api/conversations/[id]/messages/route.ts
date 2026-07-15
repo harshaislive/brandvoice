@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getDb } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 
 // Get messages for a conversation
@@ -11,35 +11,27 @@ export async function GET(
     const user = await requireAuth(request)
     const { id: conversationId } = await params
     
-    // Verify conversation belongs to user
-    const { data: conversation, error: convError } = await supabase
-      .from('conversations')
-      .select('id')
-      .eq('id', conversationId)
-      .eq('user_id', user.id)
-      .single()
+    const sql = getDb()
+    const [conversation] = await sql`
+      SELECT id
+      FROM public.conversations
+      WHERE id = ${conversationId} AND user_id = ${user.id}
+      LIMIT 1
+    `
 
-    if (convError || !conversation) {
+    if (!conversation) {
       return NextResponse.json(
         { error: 'Conversation not found' }, 
         { status: 404 }
       )
     }
 
-    // Get messages
-    const { data: messages, error } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('timestamp', { ascending: true })
-
-    if (error) {
-      console.error('Error fetching messages:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch messages' }, 
-        { status: 500 }
-      )
-    }
+    const messages = await sql`
+      SELECT *
+      FROM public.messages
+      WHERE conversation_id = ${conversationId}
+      ORDER BY timestamp ASC
+    `
 
     return NextResponse.json(messages)
   } catch (error) {

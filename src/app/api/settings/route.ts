@@ -1,26 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getDb } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
+import { hasValidSettingsPasscode } from '@/lib/settings-access'
 
 // Get system settings from beforest_settings table
 export async function GET(request: NextRequest) {
   try {
     await requireAuth(request)
     
-    // Load only prompts from beforest_settings table
-    const { data: settings, error } = await supabase
-      .from('beforest_settings')
-      .select('setting_key, setting_value, updated_at')
-      .eq('setting_key', 'prompts')
-      .order('updated_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching settings:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch settings' }, 
-        { status: 500 }
-      )
-    }
+    const sql = getDb()
+    const settings = await sql<Array<{
+      setting_key: string
+      setting_value: Record<string, string> | string
+      updated_at: string
+    }>>`
+      SELECT setting_key, setting_value, updated_at
+      FROM public.beforest_settings
+      WHERE setting_key = 'prompts'
+      ORDER BY updated_at DESC
+      LIMIT 1
+    `
 
     // Convert to key-value object for easier frontend use
     const settingsObject: Record<string, string> = {}
@@ -78,6 +77,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request)
+
+    if (!hasValidSettingsPasscode(request)) {
+      return NextResponse.json({ error: 'Invalid settings passcode' }, { status: 403 })
+    }
     
     const { settings } = await request.json()
     
@@ -107,20 +110,18 @@ export async function POST(request: NextRequest) {
 
     try {
       // Save as a single "prompts" setting with nested structure
-      const { error } = await supabase
-        .from('beforest_settings')
-        .upsert({
-          setting_key: 'prompts',
-          setting_value: JSON.stringify(promptsData), // Store as JSON string in jsonb
-          updated_by: user.email || 'admin',
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'setting_key'
-        })
-
-      if (error) {
-        throw error
-      }
+      const sql = getDb()
+      await sql`
+        INSERT INTO public.beforest_settings (
+          setting_key, setting_value, updated_by
+        ) VALUES (
+          'prompts', ${sql.json(promptsData)}, ${user.email || 'admin'}
+        )
+        ON CONFLICT (setting_key) DO UPDATE
+        SET setting_value = EXCLUDED.setting_value,
+            updated_by = EXCLUDED.updated_by,
+            updated_at = now()
+      `
 
       return NextResponse.json({
         success: true,
@@ -158,6 +159,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const user = await requireAuth(request)
+
+    if (!hasValidSettingsPasscode(request)) {
+      return NextResponse.json({ error: 'Invalid settings passcode' }, { status: 403 })
+    }
     
     const { key, value } = await request.json()
     
@@ -168,25 +173,18 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Update single setting using direct table update
-    const { error } = await supabase
-      .from('beforest_settings')
-      .upsert({
-        setting_key: key,
-        setting_value: value, // Store directly as jsonb will handle it
-        updated_by: user.email || 'admin',
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'setting_key'
-      })
-
-    if (error) {
-      console.error('Error updating setting:', error)
-      return NextResponse.json(
-        { error: 'Failed to update setting' }, 
-        { status: 500 }
+    const sql = getDb()
+    await sql`
+      INSERT INTO public.beforest_settings (
+        setting_key, setting_value, updated_by
+      ) VALUES (
+        ${key}, ${sql.json(value)}, ${user.email || 'admin'}
       )
-    }
+      ON CONFLICT (setting_key) DO UPDATE
+      SET setting_value = EXCLUDED.setting_value,
+          updated_by = EXCLUDED.updated_by,
+          updated_at = now()
+    `
 
     return NextResponse.json({
       success: true,

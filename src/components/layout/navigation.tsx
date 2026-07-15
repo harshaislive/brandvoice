@@ -1,166 +1,181 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import Image from 'next/image'
+import { useEffect, useState } from 'react'
+import { ChevronRight, History, LogOut, Menu, Settings, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useAuth } from '@/contexts/auth-context'
-import { Home, Zap, History, MessageCircle, BarChart3, Settings, Menu } from 'lucide-react'
-import { useState, useEffect } from 'react'
 
-export function Navigation() {
+type RecentTransformation = {
+  id: string
+  content_type: string
+  target_audience: string
+  created_at: string
+  original_content: string
+}
+
+const navItems = [
+  { href: '/transform', label: 'Transform', icon: Zap },
+  { href: '/history', label: 'History', icon: History },
+  { href: '/settings', label: 'Settings', icon: Settings },
+]
+
+function formatRecentDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date)
+}
+
+export function Navigation({ preview = false }: { preview?: boolean }) {
   const pathname = usePathname()
   const { isAuthenticated, user, logout } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const [recentTransformations, setRecentTransformations] = useState<RecentTransformation[]>([])
 
-  const navItems = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/transform', label: 'Transform', icon: Zap },
-    { href: '/history', label: 'History', icon: History },
-    { href: '/chat', label: 'Chat', icon: MessageCircle },
-    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/settings', label: 'Settings', icon: Settings }
-  ]
+  const showRecent = isAuthenticated || preview
 
-  // Detect mobile screen size
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024) // lg breakpoint
+    if (!isAuthenticated) {
+      setRecentTransformations([])
+      return
     }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+
+    const token = localStorage.getItem('auth_token')
+    if (!token) return
+
+    const controller = new AbortController()
+    fetch('/api/transform?limit=5', {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => setRecentTransformations(data?.transformations || []))
+      .catch(() => undefined)
+
+    return () => controller.abort()
+  }, [isAuthenticated, pathname])
 
   const NavContent = ({ onItemClick }: { onItemClick?: () => void }) => (
-    <>
-      <div className="mb-10 flex flex-col items-center text-center space-y-4 pt-4">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="mb-12 px-3 pt-3">
         <Image
           src="/logo.png"
-          alt="Logo"
-          width={60}
-          height={60}
-          className="invert object-contain w-[60px] h-[60px]"
+          alt="Beforest"
+          width={150}
+          height={54}
+          priority
+          className="h-auto w-[150px] object-contain invert"
         />
-        <p className="text-xl font-serif font-light text-sidebar-foreground tracking-wide leading-tight">
-          Beforest<br/>
-          <span className="text-sm font-sans opacity-80">Brand Voice</span>
-        </p>
       </div>
 
-      <div className="space-y-1 flex-1 px-2">
+      <nav className="space-y-2 px-1" aria-label="Primary navigation">
         {navItems.map((item) => {
-          const IconComponent = item.icon
+          const Icon = item.icon
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
           return (
             <Button
               key={item.href}
-              variant={pathname === item.href ? 'secondary' : 'ghost'}
-              className={`w-full justify-start gap-4 h-12 text-base font-light transition-all duration-300 ${
-                pathname === item.href 
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm' 
-                  : 'text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/10'
-              }`}
               asChild
+              variant="ghost"
               onClick={onItemClick}
+              className={`h-12 w-full justify-start gap-4 rounded-xl px-4 text-[15px] font-medium transition-colors ${
+                active
+                  ? 'bg-[#3d5d43] text-[#f4eee4] hover:bg-[#3d5d43] hover:text-[#f4eee4]'
+                  : 'text-[#d7cfc2]/80 hover:bg-[#3a3530] hover:text-[#f4eee4]'
+              }`}
             >
               <Link href={item.href}>
-                <IconComponent className="h-5 w-5 flex-shrink-0" />
-                {item.label}
+                <Icon className="h-5 w-5" strokeWidth={1.7} />
+                <span>{item.label}</span>
               </Link>
             </Button>
           )
         })}
-      </div>
+      </nav>
 
-      <div className="mt-auto pt-6 px-2 pb-4">
+      {showRecent && (
+        <section className="mt-12 min-h-0 flex-1 border-t border-[#514940] px-3 pt-7" aria-labelledby="recent-transformations-title">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 id="recent-transformations-title" className="text-sm font-medium text-[#f4eee4]">
+              Recent transformations
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {recentTransformations.length === 0 ? (
+              <p className="text-xs leading-relaxed text-[#bdb3a5]">No recent transformations yet.</p>
+            ) : (
+              recentTransformations.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/history?selected=${item.id}`}
+                  onClick={onItemClick}
+                  className="group block"
+                >
+                  <span className="flex items-center justify-between gap-2 text-xs text-[#ded5c8]">
+                    <span className="truncate">{item.original_content.slice(0, 32) || 'Untitled transformation'}</span>
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#8f9f89] opacity-0 transition-opacity group-hover:opacity-100" />
+                  </span>
+                  <span className="mt-1 block text-[11px] text-[#9e9588]">
+                    {formatRecentDate(item.created_at)} · {item.content_type}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
+          <Link href="/history" onClick={onItemClick} className="mt-6 inline-flex items-center gap-2 text-xs font-medium text-[#9fbd91] hover:text-[#c1d8b4]">
+            View all history <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </section>
+      )}
+
+      <div className="mt-auto border-t border-[#514940] px-3 pb-3 pt-5">
         {isAuthenticated ? (
-          <div className="rounded-lg border border-sidebar-border bg-sidebar-primary/10 p-4 backdrop-blur-sm">
-            <div className="mb-3">
-              <h3 className="font-serif font-medium text-sidebar-foreground">{user?.displayName}</h3>
-              <p className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm text-[#f4eee4]">{user?.displayName || 'Beforest Studio'}</p>
+              <p className="truncate text-[11px] text-[#9e9588]">{user?.email}</p>
             </div>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="w-full border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground bg-transparent transition-colors"
-              onClick={() => {
-                logout()
-                onItemClick?.()
-              }}
+            <button
+              type="button"
+              onClick={() => { logout(); onItemClick?.() }}
+              className="rounded-md p-2 text-[#bdb3a5] transition-colors hover:bg-[#3a3530] hover:text-[#f4eee4]"
+              aria-label="Sign out"
             >
-              Sign Out
-            </Button>
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         ) : (
-          <div className="rounded-lg border border-sidebar-border bg-sidebar-primary/10 p-4 backdrop-blur-sm">
-            <h3 className="font-serif font-medium text-sidebar-foreground mb-1">Get Started</h3>
-            <p className="text-xs text-sidebar-foreground/60 mb-4">
-              Sign in to access your transformations
-            </p>
-            <div className="space-y-2">
-              <Link href="/auth/login" className="block">
-                <Button size="sm" className="w-full bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90" onClick={onItemClick}>
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/auth/register" className="block">
-                <Button size="sm" variant="outline" className="w-full border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground bg-transparent" onClick={onItemClick}>
-                  Create Account
-                </Button>
-              </Link>
-            </div>
-          </div>
+          <Link href="/auth/login" onClick={onItemClick} className="text-sm text-[#9fbd91] hover:text-[#c1d8b4]">
+            Sign in to save transformations
+          </Link>
         )}
       </div>
-    </>
+    </div>
   )
 
   return (
     <>
-      {/* Mobile Header with Menu Button */}
-      {isMobile && (
-        <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-background border-b lg:hidden">
-          <div className="flex items-center justify-between h-full px-4">
-            <div className="flex items-center gap-3">
-              <Image
-                src="/logo.png"
-                alt="Logo"
-                width={32}
-                height={32}
-                className="invert object-contain w-[32px] h-[32px]"
-              />
-              <span className="font-semibold text-sm text-primary">Brand Voice Transformer</span>
-            </div>
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-4">
-                <SheetHeader className="sr-only">
-                  <SheetTitle>Navigation Menu</SheetTitle>
-                </SheetHeader>
-                <nav className="flex flex-col h-full">
-                  <NavContent onItemClick={() => setIsMobileMenuOpen(false)} />
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </header>
-      )}
+      <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-[#514940] bg-[#2b2724] px-4 lg:hidden">
+        <Image src="/logo.png" alt="Beforest" width={105} height={38} className="h-auto w-[105px] object-contain invert" />
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-[#f4eee4] hover:bg-[#3a3530] hover:text-[#f4eee4]" aria-label="Open navigation">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[280px] border-[#514940] bg-[#2b2724] p-5 text-[#f4eee4]">
+            <SheetHeader className="sr-only"><SheetTitle>Navigation</SheetTitle></SheetHeader>
+            <NavContent onItemClick={() => setIsMobileMenuOpen(false)} />
+          </SheetContent>
+        </Sheet>
+      </header>
 
-      {/* Desktop Sidebar */}
-      {!isMobile && (
-        <nav className="w-64 bg-sidebar text-sidebar-foreground min-h-screen p-4 fixed left-0 top-0 overflow-y-auto flex flex-col z-40">
-          <NavContent />
-        </nav>
-      )}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[280px] bg-[#2b2724] px-5 py-6 text-[#f4eee4] lg:block">
+        <NavContent />
+      </aside>
     </>
   )
 }

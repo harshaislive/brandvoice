@@ -1,79 +1,109 @@
--- Users table for authentication
 CREATE TABLE IF NOT EXISTS public.users (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  username varchar(255) UNIQUE NOT NULL,
-  email varchar(255) UNIQUE NOT NULL,
-  display_name varchar(255) NOT NULL,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  username text NOT NULL UNIQUE,
+  email text NOT NULL UNIQUE,
+  display_name text NOT NULL,
   password_hash text NOT NULL,
-  created_at timestamp with time zone DEFAULT now(),
-  last_login timestamp with time zone,
-  is_active boolean DEFAULT true,
-  CONSTRAINT users_pkey PRIMARY KEY (id)
+  created_at timestamptz NOT NULL DEFAULT now(),
+  last_login timestamptz,
+  is_active boolean NOT NULL DEFAULT true
 );
 
--- Conversations table for chat history
 CREATE TABLE IF NOT EXISTS public.conversations (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  title varchar(255) NOT NULL,
-  mode varchar(50) DEFAULT 'chat' CHECK (mode IN ('chat', 'transform')),
-  created_at timestamp with time zone DEFAULT now(),
-  last_activity timestamp with time zone DEFAULT now(),
-  is_archived boolean DEFAULT false,
-  metadata jsonb,
-  CONSTRAINT conversations_pkey PRIMARY KEY (id)
+  title text NOT NULL,
+  mode text NOT NULL DEFAULT 'chat' CHECK (mode IN ('chat', 'transform')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  last_activity timestamptz NOT NULL DEFAULT now(),
+  is_archived boolean NOT NULL DEFAULT false,
+  metadata jsonb
 );
 
--- Messages table for chat messages
 CREATE TABLE IF NOT EXISTS public.messages (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
-  role varchar(20) NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
+  role text NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
   content text NOT NULL,
   metadata jsonb,
-  timestamp timestamp with time zone DEFAULT now(),
-  token_count integer,
-  CONSTRAINT messages_pkey PRIMARY KEY (id)
+  timestamp timestamptz NOT NULL DEFAULT now(),
+  token_count integer
 );
 
--- Settings table for user preferences
-CREATE TABLE IF NOT EXISTS public.settings (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  setting_key varchar(255) NOT NULL,
-  setting_value text NOT NULL,
-  updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT settings_pkey PRIMARY KEY (id),
-  CONSTRAINT settings_user_key_unique UNIQUE (user_id, setting_key)
+CREATE TABLE IF NOT EXISTS public.beforest_settings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  setting_key text NOT NULL UNIQUE,
+  setting_value jsonb NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  updated_by text NOT NULL DEFAULT 'admin'
 );
 
--- Add user_id to transformations table
-ALTER TABLE public.beforest_transformations 
-ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES public.users(id) ON DELETE SET NULL;
+CREATE TABLE IF NOT EXISTS public.beforest_transformations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  original_content text NOT NULL,
+  content_type text NOT NULL,
+  target_audience text NOT NULL,
+  additional_context text,
+  transformed_content text NOT NULL,
+  original_length integer NOT NULL CHECK (original_length >= 0),
+  transformed_length integer NOT NULL CHECK (transformed_length >= 0),
+  length_change_percent double precision,
+  justification jsonb,
+  user_ip inet,
+  user_agent text,
+  session_id text,
+  processing_time_ms integer CHECK (processing_time_ms >= 0),
+  api_model_used text,
+  transformation_quality_score double precision
+    CHECK (transformation_quality_score BETWEEN 1 AND 5),
+  user_feedback integer CHECK (user_feedback BETWEEN 1 AND 5),
+  user_email text,
+  user_id uuid REFERENCES public.users(id) ON DELETE SET NULL
+);
 
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
-CREATE INDEX IF NOT EXISTS idx_users_username ON public.users(username);
-CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON public.conversations(user_id);
-CREATE INDEX IF NOT EXISTS idx_conversations_last_activity ON public.conversations(last_activity DESC);
-CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON public.messages(conversation_id);
-CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON public.messages(timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_settings_user_id ON public.settings(user_id);
-CREATE INDEX IF NOT EXISTS idx_transformations_user_id ON public.beforest_transformations(user_id);
+CREATE INDEX IF NOT EXISTS conversations_user_created_idx
+  ON public.conversations (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS messages_conversation_timestamp_idx
+  ON public.messages (conversation_id, timestamp ASC);
+CREATE INDEX IF NOT EXISTS transformations_user_created_idx
+  ON public.beforest_transformations (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS transformations_created_idx
+  ON public.beforest_transformations (created_at DESC);
 
--- Update triggers for timestamps
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.set_updated_timestamp()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
+  NEW.updated_at = now();
+  RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$;
 
-CREATE TRIGGER update_settings_updated_at 
-    BEFORE UPDATE ON public.settings 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE OR REPLACE FUNCTION public.set_conversation_activity()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.last_activity = now();
+  RETURN NEW;
+END;
+$$;
 
-CREATE TRIGGER update_conversations_last_activity 
-    BEFORE UPDATE ON public.conversations 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS beforest_settings_updated_at ON public.beforest_settings;
+CREATE TRIGGER beforest_settings_updated_at
+  BEFORE UPDATE ON public.beforest_settings
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_timestamp();
+
+DROP TRIGGER IF EXISTS transformations_updated_at ON public.beforest_transformations;
+CREATE TRIGGER transformations_updated_at
+  BEFORE UPDATE ON public.beforest_transformations
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_timestamp();
+
+DROP TRIGGER IF EXISTS conversations_last_activity ON public.conversations;
+DROP TRIGGER IF EXISTS update_conversations_last_activity ON public.conversations;
+CREATE TRIGGER conversations_last_activity
+  BEFORE UPDATE ON public.conversations
+  FOR EACH ROW EXECUTE FUNCTION public.set_conversation_activity();

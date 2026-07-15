@@ -1,5 +1,4 @@
-// Database types for existing Supabase schema
-// These types preserve your existing data structure
+// Database types for the application PostgreSQL schema.
 
 export interface User {
   id: string

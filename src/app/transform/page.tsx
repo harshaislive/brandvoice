@@ -1,23 +1,19 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { Copy, FileText, LoaderCircle, RotateCcw, Sparkles, TriangleAlert, Users } from 'lucide-react'
 import { Navigation } from '@/components/layout/navigation'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/auth-context'
-import { Sparkles, Copy, RotateCcw, Target, Type, Users, MessageCircle, Mail, Share2, FileText, Globe, Package, Zap, TrendingUp, Info, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 
-interface TransformResult {
+type TransformResult = {
   transformed_content: string
   transformation_id: string
   original_length: number
@@ -29,14 +25,14 @@ interface TransformResult {
 }
 
 const CONTENT_TYPES = [
-  { value: 'email', label: 'Email', icon: Mail },
-  { value: 'social', label: 'Social Media', icon: Share2 },
-  { value: 'marketing', label: 'Marketing Copy', icon: Target },
-  { value: 'blog', label: 'Blog Post', icon: FileText },
-  { value: 'website', label: 'Website Copy', icon: Globe },
-  { value: 'product', label: 'Product Description', icon: Package },
-  { value: 'custom', label: 'Custom Type...', icon: Type }
-]
+  ['email', 'Email'],
+  ['social', 'Social media'],
+  ['marketing', 'Marketing copy'],
+  ['blog', 'Blog post'],
+  ['website', 'Website copy'],
+  ['product', 'Product description'],
+  ['custom', 'Custom type'],
+] as const
 
 const TARGET_AUDIENCES = [
   'General Consumers',
@@ -49,11 +45,23 @@ const TARGET_AUDIENCES = [
   'Luxury Market',
   'Fitness Community',
   'Mindful Living',
-  'custom'
+  'custom',
 ]
+
+function ResultContent({ content }: { content: string }) {
+  const hasMarkdown = /(\*\*|__|##|###|\[.*\]\(.*\)|`.*`|\n[-*]|\n\d+\.)/.test(content)
+  if (!hasMarkdown) return <p className="whitespace-pre-wrap leading-8 text-[#e7ded1]">{content}</p>
+
+  return (
+    <div className="prose prose-invert max-w-none prose-headings:font-serif prose-p:leading-8 prose-p:text-[#e7ded1] prose-li:text-[#e7ded1]">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+    </div>
+  )
+}
 
 export default function TransformPage() {
   const { isAuthenticated } = useAuth()
+  const [previewMode, setPreviewMode] = useState(false)
   const [originalContent, setOriginalContent] = useState('')
   const [contentType, setContentType] = useState('')
   const [customContentType, setCustomContentType] = useState('')
@@ -62,60 +70,70 @@ export default function TransformPage() {
   const [additionalContext, setAdditionalContext] = useState('')
   const [isTransforming, setIsTransforming] = useState(false)
   const [result, setResult] = useState<TransformResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setPreviewMode(process.env.NODE_ENV === 'development' && window.location.search.includes('preview=1'))
+  }, [])
+
+  const finalContentType = contentType === 'custom' ? customContentType.trim() : contentType
+  const finalAudience = targetAudience === 'custom' ? customAudience.trim() : targetAudience
+  const canTransform = Boolean(originalContent.trim() && finalContentType && finalAudience && !isTransforming)
 
   const handleTransform = async () => {
-    const finalContentType = contentType === 'custom' ? customContentType : contentType
-    const finalAudience = targetAudience === 'custom' ? customAudience : targetAudience
-    
-    if (!originalContent.trim() || !finalContentType || !finalAudience) {
-      toast.error('Please fill in all required fields')
+    if (!canTransform) {
+      setError('Add your content, audience, and content type to continue.')
+      toast.error('Complete the required fields first')
       return
     }
 
+    setError(null)
+    setResult(null)
     setIsTransforming(true)
-    
+
     try {
       const token = localStorage.getItem('auth_token')
       const response = await fetch('/api/transform', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           original_content: originalContent,
           content_type: finalContentType,
           target_audience: finalAudience,
-          additional_context: additionalContext
-        })
+          additional_context: additionalContext,
+        }),
       })
 
       if (!response.ok) {
-        throw new Error('Transformation failed')
+        const body = await response.json().catch(() => null)
+        throw new Error(body?.error || 'Transformation failed')
       }
 
-      const data = await response.json()
-      setResult(data)
-      toast.success('Content transformed successfully!')
-      
-    } catch (error) {
-      console.error('Transform error:', error)
-      toast.error('Failed to transform content')
+      setResult(await response.json())
+      toast.success('Transformation complete')
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Transformation failed'
+      setError(message)
+      toast.error(message)
     } finally {
       setIsTransforming(false)
     }
   }
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async () => {
+    if (!result) return
     try {
-      await navigator.clipboard.writeText(text)
-      toast.success('Copied to clipboard!')
+      await navigator.clipboard.writeText(result.transformed_content)
+      toast.success('Copied to clipboard')
     } catch {
-      toast.error('Failed to copy to clipboard')
+      toast.error('Could not copy the transformation')
     }
   }
 
-  const handleReset = () => {
+  const reset = () => {
     setOriginalContent('')
     setContentType('')
     setCustomContentType('')
@@ -123,53 +141,18 @@ export default function TransformPage() {
     setCustomAudience('')
     setAdditionalContext('')
     setResult(null)
+    setError(null)
   }
 
-  const selectedContentType = CONTENT_TYPES.find(ct => ct.value === contentType)
-
-  // Helper function to detect and format content
-  const formatContent = (content: string) => {
-    const hasHTML = /<\/?[a-z][\s\S]*>/i.test(content)
-    const hasMarkdown = /(\*\*|__|##|###|\[.*\]\(.*\)|`.*`|\n-|\n\*|\n\d+\.)/.test(content)
-    
-    if (hasHTML || hasMarkdown) {
-      return (
-        <div className="prose prose-sm prose-stone max-w-none">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              h1: ({...props}) => <h1 className="text-xl font-serif font-medium mb-3 mt-4" {...props} />,
-              h2: ({...props}) => <h2 className="text-lg font-serif font-medium mb-3 mt-4" {...props} />,
-              p: ({...props}) => <p className="mb-4 leading-relaxed text-foreground/90" {...props} />,
-              ul: ({...props}) => <ul className="list-disc list-inside mb-4 space-y-1" {...props} />,
-              li: ({...props}) => <li className="text-sm" {...props} />,
-              blockquote: ({...props}) => (
-                <blockquote className="border-l-2 border-primary/30 pl-4 italic my-4 text-muted-foreground" {...props} />
-              ),
-            }}
-          >
-            {content}
-          </ReactMarkdown>
-        </div>
-      )
-    }
-    
+  if (!isAuthenticated && !previewMode) {
     return (
-      <div className="whitespace-pre-wrap leading-relaxed text-foreground/90 font-sans">
-        {content}
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-[#2b2724] text-[#f4eee4]">
         <Navigation />
-        <main className="pt-16 lg:pt-0 lg:ml-64 flex items-center justify-center p-6 h-screen">
-          <div className="text-center space-y-4 max-w-md">
-            <h2 className="text-3xl font-serif font-light">Authentication Required</h2>
-            <p className="text-muted-foreground">Please sign in to access the studio.</p>
-            <Button onClick={() => window.location.href = '/auth/login'}>Sign In</Button>
+        <main className="flex min-h-screen items-center justify-center px-6 lg:ml-[280px]">
+          <div className="max-w-sm text-center">
+            <h1 className="font-serif text-3xl">Sign in to transform</h1>
+            <p className="mt-3 text-sm leading-6 text-[#bdb3a5]">Your transformations are saved to your private history.</p>
+            <Button onClick={() => { window.location.href = '/auth/login' }} className="mt-7 bg-[#3d5d43] text-[#f4eee4] hover:bg-[#496d50]">Sign in</Button>
           </div>
         </main>
       </div>
@@ -177,185 +160,78 @@ export default function TransformPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <main className="pt-16 lg:pt-0 lg:ml-64 min-h-screen flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-8 sm:px-12 border-b border-border/40">
-           <div className="max-w-6xl mx-auto flex items-end justify-between">
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-serif font-light text-foreground mb-2">
-                  Content Generator
-                </h1>
-                <p className="text-muted-foreground font-light text-sm">
-                  Create on-brand content instantly.
-                </p>
-              </div>
-              {result && (
-                 <Button onClick={handleReset} variant="ghost" size="sm" className="hidden sm:flex">
-                    <RotateCcw className="h-4 w-4 mr-2" /> Start New
-                 </Button>
+    <div className="min-h-screen bg-[#2b2724] text-[#f4eee4]">
+      <Navigation preview={previewMode} />
+      <main className="min-h-screen px-5 pb-16 pt-24 sm:px-10 lg:ml-[280px] lg:px-16 lg:pt-20">
+        <div className="mx-auto max-w-[900px]">
+          <header className="text-center">
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-[#9fbd91]">Beforest brand voice</p>
+            <h1 className="mt-5 font-serif text-4xl leading-tight text-[#f4eee4] sm:text-5xl">Transform your message.<br />Find your voice.</h1>
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-[#bdb3a5]">Paste your content below and we&apos;ll refine it to match your audience and content type.</p>
+          </header>
+
+          <section className="mt-12" aria-labelledby="source-content-label">
+            <Label id="source-content-label" htmlFor="source-content" className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#a9a092]">Source content</Label>
+            <div className="relative mt-3">
+              <Textarea
+                id="source-content"
+                value={originalContent}
+                onChange={(event) => setOriginalContent(event.target.value)}
+                placeholder="Paste your content here..."
+                maxLength={10000}
+                className="min-h-[190px] resize-none rounded-xl border-[#62584e] bg-[#312d29] p-6 text-base leading-7 text-[#f4eee4] placeholder:text-[#948b80] focus:border-[#8eae82] focus:ring-[#8eae82]/30"
+              />
+              <span className="absolute bottom-3 right-4 text-[11px] text-[#8f877d]">{originalContent.length.toLocaleString()} / 10,000</span>
+            </div>
+          </section>
+
+          <section className="mt-7 grid gap-4 sm:grid-cols-2" aria-label="Transformation context">
+            <div>
+              <Label className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-[#a9a092]"><Users className="h-4 w-4" /> Audience</Label>
+              <Select value={targetAudience} onValueChange={setTargetAudience}>
+                <SelectTrigger className="h-14 rounded-xl border-[#62584e] bg-[#312d29] text-[#e7ded1] focus:ring-[#8eae82]/30"><SelectValue placeholder="Select audience" /></SelectTrigger>
+                <SelectContent className="border-[#62584e] bg-[#312d29] text-[#e7ded1]">
+                  {TARGET_AUDIENCES.map((audience) => <SelectItem key={audience} value={audience}>{audience === 'custom' ? 'Custom audience' : audience}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {targetAudience === 'custom' && <Input value={customAudience} onChange={(event) => setCustomAudience(event.target.value)} placeholder="Describe the audience" className="mt-2 h-11 border-[#62584e] bg-[#312d29] text-[#f4eee4]" />}
+            </div>
+            <div>
+              <Label className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-[#a9a092]"><FileText className="h-4 w-4" /> Content type</Label>
+              <Select value={contentType} onValueChange={setContentType}>
+                <SelectTrigger className="h-14 rounded-xl border-[#62584e] bg-[#312d29] text-[#e7ded1] focus:ring-[#8eae82]/30"><SelectValue placeholder="Select content type" /></SelectTrigger>
+                <SelectContent className="border-[#62584e] bg-[#312d29] text-[#e7ded1]">
+                  {CONTENT_TYPES.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {contentType === 'custom' && <Input value={customContentType} onChange={(event) => setCustomContentType(event.target.value)} placeholder="Describe the content type" className="mt-2 h-11 border-[#62584e] bg-[#312d29] text-[#f4eee4]" />}
+            </div>
+          </section>
+
+          <section className="mt-7" aria-live="polite" aria-busy={isTransforming}>
+            <div className="mb-3 flex items-center justify-between">
+              <Label className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#a9a092]">Transformed content</Label>
+              {result && <Button type="button" onClick={copyToClipboard} variant="ghost" size="sm" className="gap-2 text-[#9fbd91] hover:bg-[#3a3530] hover:text-[#c1d8b4]"><Copy className="h-4 w-4" /> Copy</Button>}
+            </div>
+            <div className={`min-h-[150px] rounded-xl border p-6 ${result ? 'border-[#62584e] bg-[#312d29]' : error ? 'border-[#8d6256] bg-[#382e2b]' : 'border-[#62584e] bg-[#312d29]'}`}>
+              {isTransforming ? (
+                <div className="flex min-h-[110px] items-center justify-center gap-3 text-sm text-[#bdb3a5]"><LoaderCircle className="h-5 w-5 animate-spin text-[#9fbd91]" /> Refining your message…</div>
+              ) : error ? (
+                <div className="flex min-h-[110px] flex-col items-center justify-center text-center"><TriangleAlert className="h-5 w-5 text-[#d79d86]" /><p className="mt-3 text-sm text-[#e1c0b1]">{error}</p><Button type="button" onClick={() => { setError(null); void handleTransform() }} variant="ghost" className="mt-2 gap-2 text-[#e0b8a7] hover:bg-[#463530] hover:text-[#f0d1c2]"><RotateCcw className="h-4 w-4" /> Try again</Button></div>
+              ) : result ? (
+                <ResultContent content={result.transformed_content} />
+              ) : (
+                <div className="flex min-h-[110px] items-center justify-center text-center text-sm text-[#8f877d]">Your transformed content will appear here.</div>
               )}
-           </div>
-        </div>
-
-        <div className="flex-1 p-6 sm:p-12 overflow-y-auto">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 h-full">
-            
-            {/* Input Column */}
-            <div className="space-y-8 flex flex-col h-full">
-               <div className="space-y-6 flex-1">
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground font-medium">Source Content</Label>
-                    <Textarea
-                      placeholder="Paste your draft here..."
-                      value={originalContent}
-                      onChange={(e) => setOriginalContent(e.target.value)}
-                      className="min-h-[200px] lg:min-h-[300px] resize-none p-6 text-base leading-relaxed border-border/50 bg-secondary/10 focus:bg-background focus:ring-1 transition-all rounded-xl"
-                    />
-                    <div className="flex justify-between items-center text-xs text-muted-foreground px-1">
-                       <span>{originalContent.length} characters</span>
-                       {originalContent && <span>Ready to refine</span>}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground font-medium">Format</Label>
-                      <Select value={contentType} onValueChange={setContentType}>
-                        <SelectTrigger className="h-12 border-border/50 bg-background rounded-lg">
-                          <SelectValue placeholder="Select format" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CONTENT_TYPES.map((type) => {
-                            const IconComponent = type.icon
-                            return (
-                              <SelectItem key={type.value} value={type.value}>
-                                <div className="flex items-center gap-2">
-                                  <IconComponent className="h-4 w-4 opacity-50" />
-                                  {type.label}
-                                </div>
-                              </SelectItem>
-                            )
-                          })}
-                        </SelectContent>
-                      </Select>
-                      {contentType === 'custom' && (
-                        <Input
-                           placeholder="Specify type..."
-                           value={customContentType}
-                           onChange={(e) => setCustomContentType(e.target.value)}
-                           className="mt-2"
-                        />
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground font-medium">Target Audience</Label>
-                       <Select value={targetAudience} onValueChange={setTargetAudience}>
-                        <SelectTrigger className="h-12 border-border/50 bg-background rounded-lg">
-                          <SelectValue placeholder="Select audience" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TARGET_AUDIENCES.map((audience) => (
-                            <SelectItem key={audience} value={audience}>
-                                {audience === 'custom' ? 'Custom Audience...' : audience}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                       {targetAudience === 'custom' && (
-                        <Input
-                          placeholder="Describe audience..."
-                          value={customAudience}
-                          onChange={(e) => setCustomAudience(e.target.value)}
-                           className="mt-2"
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground font-medium">Context / Notes</Label>
-                    <Input
-                      placeholder="Any specific instructions? (e.g., 'Make it punchy', 'Focus on value')"
-                      value={additionalContext}
-                      onChange={(e) => setAdditionalContext(e.target.value)}
-                      className="h-12 border-border/50 bg-background rounded-lg"
-                    />
-                  </div>
-               </div>
-
-               <div className="pt-4">
-                  <Button 
-                    onClick={handleTransform} 
-                    disabled={isTransforming || !originalContent.trim() || !contentType || !targetAudience}
-                    className="w-full h-14 text-lg shadow-lg hover:shadow-xl transition-all"
-                  >
-                    {isTransforming ? (
-                      <span className="flex items-center gap-2 animate-pulse">
-                        <Sparkles className="h-5 w-5 animate-spin" /> Refining Voice...
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                         Refine Content <ArrowRight className="h-5 w-5" />
-                      </span>
-                    )}
-                  </Button>
-               </div>
             </div>
+            {result && <p className="mt-3 text-right text-[11px] text-[#8f877d]">{result.processing_time_ms}ms · {result.transformed_length.toLocaleString()} characters</p>}
+          </section>
 
-            {/* Output Column */}
-            <div className={cn(
-               "relative rounded-2xl bg-secondary/30 border border-border/50 p-6 sm:p-8 flex flex-col h-full transition-all duration-500",
-               !result && "items-center justify-center opacity-70 bg-secondary/10 border-dashed"
-            )}>
-               {result ? (
-                 <>
-                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/10">
-                      <div className="flex items-center gap-3">
-                         <div className="p-2 bg-primary/10 rounded-full">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                         </div>
-                         <div>
-                            <h3 className="font-serif font-medium">Refined Output</h3>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                               <Badge variant="outline" className="text-[10px] h-5">{result.quality_score}/5 Quality</Badge>
-                               <span>{result.transformed_length} chars</span>
-                            </div>
-                         </div>
-                      </div>
-                      <Button onClick={() => copyToClipboard(result.transformed_content)} variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                         <Copy className="h-4 w-4" />
-                      </Button>
-                   </div>
-                   
-                   <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                      {formatContent(result.transformed_content)}
-                   </div>
-
-                   <div className="mt-6 pt-4 border-t border-border/10">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                         <span>Change: <span className={result.length_change_percent >= 0 ? "text-green-600" : "text-orange-600"}>{result.length_change_percent > 0 ? '+' : ''}{result.length_change_percent}% length</span></span>
-                         <span>{result.processing_time_ms}ms</span>
-                      </div>
-                   </div>
-                 </>
-               ) : (
-                  <div className="text-center space-y-4 max-w-sm mx-auto">
-                     <div className="w-16 h-16 rounded-full bg-background border border-border/50 flex items-center justify-center mx-auto shadow-sm">
-                        <Type className="h-8 w-8 text-muted-foreground/50" />
-                     </div>
-                     <h3 className="text-xl font-serif font-light text-muted-foreground">Ready to refine</h3>
-                     <p className="text-sm text-muted-foreground/60 leading-relaxed">
-                        Your transformed content will appear here, optimized for your audience and tone.
-                     </p>
-                  </div>
-               )}
-            </div>
-
-          </div>
+          <Button type="button" onClick={handleTransform} disabled={!canTransform} className="mt-8 h-14 w-full rounded-xl bg-[#3d5d43] text-base font-medium text-[#f4eee4] hover:bg-[#496d50] disabled:bg-[#3d5d43]/40 disabled:text-[#bdb3a5]">
+            {isTransforming ? <><LoaderCircle className="mr-2 h-5 w-5 animate-spin" /> Transforming</> : <><Sparkles className="mr-2 h-5 w-5" /> Transform</>}
+          </Button>
+          {result && <Button type="button" onClick={reset} variant="ghost" className="mx-auto mt-3 flex gap-2 text-[#a9a092] hover:bg-[#3a3530] hover:text-[#f4eee4]"><RotateCcw className="h-4 w-4" /> Start a new transformation</Button>}
+          <p className="mt-6 text-center text-xs text-[#8f877d]">Your content is secure and saved to your private transformation history.</p>
         </div>
       </main>
     </div>
