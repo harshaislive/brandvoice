@@ -62,7 +62,7 @@ export function Navigation({ preview = false }: { preview?: boolean }) {
   ) : preview ? (
     <span className="text-xs text-[#817b71]">Preview</span>
   ) : (
-    <Link href="/auth/login" className="text-sm font-medium text-[#314536] hover:text-[#496a50]">Sign in</Link>
+    <Link href="/" className="text-sm font-medium text-[#314536] hover:text-[#496a50]">Sign in</Link>
   )
 
   return (

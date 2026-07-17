@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { LoginHome } from '@/components/auth/login-home'
 
 export default function Home() {
-  redirect('/transform')
+  return <LoginHome />
 }

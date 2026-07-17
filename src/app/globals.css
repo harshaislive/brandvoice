@@ -247,7 +247,7 @@
     animation-delay: 0.28s;
   }
 
-  @media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
     .brand-spinner {
       animation-duration: 1.6s;
     }
@@ -687,5 +687,47 @@
   .hljs-number,
   .hljs-literal {
     color: #ff774a !important; /* coral-orange */
+  }
+}
+
+.brand-toast {
+  width: 320px !important;
+  border: 1px solid #d1c8ba !important;
+  background: #faf8f2 !important;
+  color: #2c2924 !important;
+  box-shadow: 0 12px 32px rgb(49 69 54 / 0.12) !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+[data-sonner-toaster][data-x-position='left'] {
+  left: 32px !important;
+}
+
+.brand-toast-title {
+  color: #2c2924 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.brand-toast-description {
+  color: #6f6a61 !important;
+  font-size: 12px !important;
+}
+
+.brand-toast-action {
+  background: #315d3c !important;
+  color: #faf8f2 !important;
+}
+
+.brand-toast [data-close-button] {
+  left: auto !important;
+  right: 8px !important;
+  top: 8px !important;
+  transform: none !important;
+}
+
+@media (max-width: 767px) {
+  [data-sonner-toaster][data-y-position='bottom'] {
+    bottom: calc(84px + env(safe-area-inset-bottom)) !important;
   }
 }

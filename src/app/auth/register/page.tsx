@@ -11,7 +11,7 @@ export default function RegisterPage() {
           <h1 className="mt-4 font-serif text-[42px] font-light leading-tight tracking-[-0.02em] text-[#26372b]">Access is invitation-only.</h1>
           <p className="mt-4 text-[15px] leading-7 text-[#6f6a61]">A Beforest administrator creates each account and shares the login details with approved users.</p>
         </div>
-        <Link href="/auth/login" className="mt-8 inline-flex h-11 items-center justify-center rounded-lg bg-[#3b6345] px-7 text-sm font-medium text-[#faf8f2] hover:bg-[#314f39]">
+        <Link href="/" className="mt-8 inline-flex h-11 items-center justify-center rounded-lg bg-[#3b6345] px-7 text-sm font-medium text-[#faf8f2] hover:bg-[#314f39]">
           Go to sign in
         </Link>
       </div>

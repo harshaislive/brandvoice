@@ -1,54 +1,68 @@
-# Design QA — Mobile draft-first transformer
+# Design QA — Option 2 desktop transform workspace
 
-## Reference and implementation
+## Comparison target
 
-- Source visual truth: `C:/Users/harsh/.codex/generated_images/019f64fb-1a6c-7cd3-a01a-aacac258bd8e/exec-b860e8e1-6d1e-44fe-a491-d5c4eea60641.png`
-- Browser-rendered implementation: `C:/Users/harsh/AppData/Local/Temp/brandvoice-mobile-fidelity-v9.png`
-- Full-view comparison: `C:/Users/harsh/AppData/Local/Temp/brandvoice-mobile-design-qa-comparison-final.png`
-- Focused loading evidence: `C:/Users/harsh/AppData/Local/Temp/brandvoice-mobile-loading-final-b.png`
-- Focused result evidence: `C:/Users/harsh/AppData/Local/Temp/brandvoice-mobile-after-result.png`
-- Viewport: 390 × 844
-- State: populated draft, selected audience and content type, optional context collapsed, primary action ready
+- Source visual truth: `C:/Ai articrafts/brandvoicetransformer/brandvoice/artifacts/selected-desktop-concept-option-2.png`
+- Browser-rendered implementation: `C:/Users/Mudumba/.codex/visualizations/2026/07/17/019f6edc-3dce-7e61-8380-fa65c9042c65/brandvoice-desktop-success.png`
+- Full-view comparison: `C:/Users/Mudumba/.codex/visualizations/2026/07/17/019f6edc-3dce-7e61-8380-fa65c9042c65/brandvoice-design-comparison.png`
+- Focused top-region comparison: `C:/Users/Mudumba/.codex/visualizations/2026/07/17/019f6edc-3dce-7e61-8380-fa65c9042c65/brandvoice-design-comparison-focused.png`
+- Additional state evidence: `brandvoice-desktop-loading.png`, `brandvoice-desktop-error.png`, `brandvoice-mobile-filled.png`, `brandvoice-mobile-loading.png`, and `brandvoice-mobile-success.png` in the same visualization folder.
+- Viewport: 1440 × 1024 desktop and 390 × 844 mobile.
+- State: populated draft, selected audience/content type, streamed transformation completed, success notification visible.
+- Capture method: Playwright Chromium fallback because the Browser plugin was not available; fallback was approved by the user.
 
 ## Full-view comparison evidence
 
-The reference and implementation were resized to the same 390 × 844 viewport and placed side by side. The implementation preserves the reference hierarchy: compact branded header, restrained title, draft-first writing surface, adjacent audience/type controls, collapsed context row, and a full-width action held at the bottom safe area.
+The normalized side-by-side comparison confirms the accepted three-region structure: a light control rail, equal original/result document canvases, slim top navigation, bottom-left notification, compact header actions, and uninterrupted full-height work surfaces. The implementation preserves the mock's warm editorial density and uses the real Beforest logo and bundled Arizona Flare font files.
 
 ## Focused region comparison evidence
 
-Focused comparison was required for the persistent action and its processing state. Two browser frames captured the custom rotating loader and staggered dots, while the live region changed from `Transform draft` to `Shaping the voice… / Reading your draft`. The completed state moved to a copyable transformed result without removing the persistent action.
+The focused comparison covers the brand header, rail hierarchy, document headers, select geometry, status text, Copy/Replace actions, and document typography. It was required because these controls are too small to judge reliably in the full-view comparison alone.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: passed. ABC Arizona Flare remains the only interface family. The light editorial heading, compact labels, readable 17px editor copy, and line height match the Beforest system.
-- Spacing and layout rhythm: passed. The 20px mobile gutter, warm bordered surfaces, 12–14px radii, 44px minimum controls, large editor, and safe-area action follow the selected direction. The implementation is slightly denser than the generated mock so context remains reachable on real mobile browser heights.
-- Colors and visual tokens: passed. Parchment, warm paper, forest action, charcoal copy, and warm-grey rules use the existing project tokens. No gradients or decorative effects were introduced.
-- Image quality and asset fidelity: passed. The existing Beforest logo is used directly. All interface symbols remain in the established Lucide icon system; there are no placeholder or hand-built visual assets.
-- Copy and content: passed. Mobile copy is concise and task-oriented: `Transform`, `Draft`, `Optional context`, `Transform draft`, and explicit processing language.
+- Fonts and typography: passed. The implementation uses the bundled ABC Arizona Flare family for document and interface text, with the same light editorial heading treatment, compact 11–13px chrome labels, and 16–17px readable document copy.
+- Spacing and layout rhythm: passed. The 280px light rail, equal document tracks, 58px document headers, thin dividers, full-height canvas, and restrained surface framing match the selected direction. The comparison focus control was intentionally placed on the document-header boundary rather than over dynamic document text.
+- Colors and visual tokens: passed. Parchment, paper ivory, forest action green, charcoal text, sage status, and warm clay error styling map to the existing project palette without gradients or generic SaaS effects.
+- Image quality and assets: passed. The real `/public/logo.png` is used. All UI glyphs come from the existing Lucide icon library, which matches the selected concept's fine outline style. No placeholder, CSS-drawn, or generated substitute assets were introduced.
+- Copy and content: passed. Navigation and primary action copy match the concept. Dynamic preview copy was expanded after the first pass so the document density reflects realistic transformations. Production result copy remains model-generated.
 
 ## Interaction and responsive QA
 
-- Entry route loaded at `/transform?preview=1&state=filled` with meaningful content and no framework overlay.
-- Draft input accepted text and updated the character count.
-- Audience and content type selections enabled the primary action.
-- Optional context expanded into a focused text area and collapsed cleanly.
-- Transform changed to an animated, high-contrast processing state with cycling status copy.
-- Completion scrolled to a copyable result and exposed Start again.
-- The fixed action measured `bottom: 844` in an `844px` viewport after the containing-block fix.
-- Desktop smoke test passed at 1280 × 900 with the original two-panel workspace preserved.
-- Fresh mobile and desktop console checks returned no application warnings or errors.
+- Page identity matched `/transform?preview=1&state=filled`; title was `Brand Voice Transformer`.
+- Meaningful app content rendered with no Next.js error overlay.
+- Console and page-error capture returned no warnings or errors.
+- Transform moved through reading, streaming, and completion states; partial text appeared before completion.
+- Copy placed the transformed result on the clipboard.
+- Replace draft moved the transformed result back into the editor.
+- Stop transformation preserved partial output and presented cancellation feedback.
+- Simulated AI failure preserved the draft and exposed an inline Try again action.
+- Desktop document width had no horizontal overflow: `scrollWidth === clientWidth === 1440`.
+- Mobile had no horizontal overflow: `scrollWidth === clientWidth === 390`; filled, loading, and completed states remained usable with the fixed action.
+- Production build passed on Next.js 15.5.20. Existing unrelated lint warnings remain in Analytics and Settings.
 
 ## Comparison history
 
-1. P1 — the action bar was visually positioned after the controls instead of at the viewport bottom because inherited identity transforms created a containing block. Fixed by explicitly removing transforms from the mobile page ancestors. Post-fix browser geometry confirmed the action bottom equals the viewport height.
-2. P2 — loading inherited the disabled button's faded styling, making progress look inactive. Fixed by separating the loading accessibility state from the empty disabled state and keeping forest contrast during processing. Post-fix loading captures show a legible spinner, status label, and staggered dots.
-3. P2 — the editor initially expanded with content, pushing context out of reach. Fixed with an intentional 300px mobile editor and internal scrolling. Post-fix capture keeps the draft primary while showing controls and context above the persistent action.
-4. Final comparison found no remaining P0, P1, or P2 issues.
+1. P2 — the initial development fixture was much shorter than the accepted design, leaving excessive blank document space. Fixed by replacing preview-only copy with realistic multi-paragraph original and transformed content. Post-fix side-by-side evidence shows matching editorial density and paragraph rhythm.
+2. P2 — the centered comparison control could cover unpredictable model text. Fixed by keeping the same control at the document-header boundary, preserving visibility and interaction without obscuring user content. Post-fix success evidence shows no overlap with either document.
+3. P3 — the development-only Next.js indicator appears near the bottom-left notification. It is absent from production builds and is not an application UI issue.
 
-## Follow-up polish
+## Remaining intentional deviations
 
-- P3: on very short browser heights, the Recent work heading may peek above the fixed action. This does not block the transform flow and can be tightened later if desired.
+- Dynamic word counts and completion time reflect real content rather than the fixed values in the generated concept.
+- The comparison focus control sits on the header boundary for content safety instead of floating midway through arbitrary document text.
+- Mobile preserves the previously accepted draft-first design rather than collapsing the desktop concept mechanically.
 
 ## Final result
 
-passed
+final result: passed
+
+## Unified home and sign-in follow-up
+
+- Consolidated the previous root redirect, unauthenticated transform gate, and `/auth/login` screen into one sign-in surface at `/`.
+- Authenticated sessions replace `/` with `/transform`; legacy `/auth/login` bookmarks and unauthenticated `/transform` visits resolve to `/`.
+- Preserved the existing Beforest login design rather than introducing a new visual direction.
+- Desktop evidence: `C:\Users\Mudumba\.codex\visualizations\2026\07\17\019f6edc-3dce-7e61-8380-fa65c9042c65\brandvoice-unified-home-desktop.png` at 1440×1024.
+- Mobile evidence: `C:\Users\Mudumba\.codex\visualizations\2026\07\17\019f6edc-3dce-7e61-8380-fa65c9042c65\brandvoice-unified-home-mobile.png` at 390×844.
+- Empty-submit validation, both redirects, responsive fit, and console capture passed. `scrollWidth === clientWidth` at both viewports and no console errors were reported.
+- Production build passed on Next.js 15.5.20; only the previously documented unrelated Analytics and Settings lint warnings remain.

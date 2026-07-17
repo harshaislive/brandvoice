@@ -24,13 +24,15 @@ export default function RootLayout({
           </ErrorBoundary>
         </AuthProvider>
         <Toaster 
-          position="top-right"
+          position="bottom-left"
+          closeButton
           toastOptions={{
             duration: 4000,
-            style: {
-              background: 'hsl(var(--background))',
-              color: 'hsl(var(--foreground))',
-              border: '1px solid hsl(var(--border))',
+            classNames: {
+              toast: 'brand-toast',
+              title: 'brand-toast-title',
+              description: 'brand-toast-description',
+              actionButton: 'brand-toast-action',
             },
           }}
         />
