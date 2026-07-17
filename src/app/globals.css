@@ -726,6 +726,25 @@
   transform: none !important;
 }
 
+.brand-sidebar-scroll {
+  scrollbar-color: #728776 transparent;
+  scrollbar-width: thin;
+}
+
+.brand-sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.brand-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.brand-sidebar-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid #203c2c;
+  border-radius: 999px;
+  background: #728776;
+}
+
 @media (max-width: 767px) {
   [data-sonner-toaster][data-y-position='bottom'] {
     bottom: calc(84px + env(safe-area-inset-bottom)) !important;

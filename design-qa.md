@@ -4,7 +4,7 @@
 
 - Source visual truth: `C:/Ai articrafts/brandvoicetransformer/brandvoice/artifacts/selected-desktop-concept-option-2.png`
 - Browser-rendered implementation: `C:/Users/Mudumba/.codex/visualizations/2026/07/17/019f6edc-3dce-7e61-8380-fa65c9042c65/brandvoice-desktop-success.png`
-- Full-view comparison: `C:/Users/Mudumba/.codex/visualizations/2026/07/17/019f6edc-3dce-7e61-8380-fa65c9042c65/brandvoice-design-comparison.png`
+- Full-view comparison: `C:/Users/Mudumba/.codex/visualizations/2026/07/17/019f6edc-3dce-7e61-8380-fa65c9042c65/brandvoice-before-after-comparison.png`
 - Focused top-region comparison: `C:/Users/Mudumba/.codex/visualizations/2026/07/17/019f6edc-3dce-7e61-8380-fa65c9042c65/brandvoice-design-comparison-focused.png`
 - Additional state evidence: `brandvoice-desktop-loading.png`, `brandvoice-desktop-error.png`, `brandvoice-mobile-filled.png`, `brandvoice-mobile-loading.png`, and `brandvoice-mobile-success.png` in the same visualization folder.
 - Viewport: 1440 × 1024 desktop and 390 × 844 mobile.
@@ -13,7 +13,7 @@
 
 ## Full-view comparison evidence
 
-The normalized side-by-side comparison confirms the accepted three-region structure: a light control rail, equal original/result document canvases, slim top navigation, bottom-left notification, compact header actions, and uninterrupted full-height work surfaces. The implementation preserves the mock's warm editorial density and uses the real Beforest logo and bundled Arizona Flare font files.
+The normalized side-by-side comparison confirms the accepted three-region structure while incorporating the requested refinement: a deep forest control rail, equal original/result document canvases, slim top navigation, compact header actions, and uninterrupted full-height work surfaces. The implementation preserves the editorial density and uses the real Beforest logo and bundled Arizona Flare font files.
 
 ## Focused region comparison evidence
 
@@ -22,8 +22,8 @@ The focused comparison covers the brand header, rail hierarchy, document headers
 ## Required fidelity surfaces
 
 - Fonts and typography: passed. The implementation uses the bundled ABC Arizona Flare family for document and interface text, with the same light editorial heading treatment, compact 11–13px chrome labels, and 16–17px readable document copy.
-- Spacing and layout rhythm: passed. The 280px light rail, equal document tracks, 58px document headers, thin dividers, full-height canvas, and restrained surface framing match the selected direction. The comparison focus control was intentionally placed on the document-header boundary rather than over dynamic document text.
-- Colors and visual tokens: passed. Parchment, paper ivory, forest action green, charcoal text, sage status, and warm clay error styling map to the existing project palette without gradients or generic SaaS effects.
+- Spacing and layout rhythm: passed. The independently scrollable 292px rail, equal document tracks, 58px document headers, thin dividers, full-height canvas, and restrained surface framing preserve the selected direction. The redundant center comparison control was removed.
+- Colors and visual tokens: passed. Deep forest navigation, paper ivory original copy, a pale sage result canvas, charcoal text, and warm clay error styling create clearer hierarchy without gradients or generic SaaS effects.
 - Image quality and assets: passed. The real `/public/logo.png` is used. All UI glyphs come from the existing Lucide icon library, which matches the selected concept's fine outline style. No placeholder, CSS-drawn, or generated substitute assets were introduced.
 - Copy and content: passed. Navigation and primary action copy match the concept. Dynamic preview copy was expanded after the first pass so the document density reflects realistic transformations. Production result copy remains model-generated.
 
@@ -44,13 +44,13 @@ The focused comparison covers the brand header, rail hierarchy, document headers
 ## Comparison history
 
 1. P2 — the initial development fixture was much shorter than the accepted design, leaving excessive blank document space. Fixed by replacing preview-only copy with realistic multi-paragraph original and transformed content. Post-fix side-by-side evidence shows matching editorial density and paragraph rhythm.
-2. P2 — the centered comparison control could cover unpredictable model text. Fixed by keeping the same control at the document-header boundary, preserving visibility and interaction without obscuring user content. Post-fix success evidence shows no overlap with either document.
+2. P2 — the centered comparison control added visual clutter and could cover unpredictable model text. Removed entirely; the persistent document headers already make the two sides clear.
 3. P3 — the development-only Next.js indicator appears near the bottom-left notification. It is absent from production builds and is not an application UI issue.
+4. P1 — the configured Azure model could spend the completion budget on hidden reasoning and return an empty stream. Rewrite and analysis requests now disable reasoning, and empty streams receive one non-streaming fallback before showing a specific recoverable error.
 
 ## Remaining intentional deviations
 
 - Dynamic word counts and completion time reflect real content rather than the fixed values in the generated concept.
-- The comparison focus control sits on the header boundary for content safety instead of floating midway through arbitrary document text.
 - Mobile preserves the previously accepted draft-first design rather than collapsing the desktop concept mechanically.
 
 ## Final result

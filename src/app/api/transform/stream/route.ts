@@ -17,6 +17,23 @@ type PostTransformJob = {
   }
 }
 
+function getPublicTransformError(error: unknown) {
+  const status = typeof error === 'object' && error !== null && 'status' in error
+    ? Number(error.status)
+    : 0
+  const message = error instanceof Error ? error.message.toLowerCase() : ''
+
+  if (status === 429) return 'The AI service is busy right now. Please retry in a moment.'
+  if (status === 401 || status === 403) return 'The AI service needs its access settings refreshed. Please contact an administrator.'
+  if (status >= 500 || message.includes('timeout') || message.includes('network')) {
+    return 'The AI service is temporarily unavailable. Your draft is safe—please try again.'
+  }
+  if (message.includes('empty transformation')) {
+    return 'The AI returned no text. Your draft is safe—please try again.'
+  }
+  return 'The transformation could not be completed. Your draft is safe—please try again.'
+}
+
 let promptCache: { value: BrandPromptSet; expiresAt: number } | null = null
 
 async function loadPrompts(sql: ReturnType<typeof getDb>) {
@@ -141,7 +158,19 @@ export async function POST(request: NextRequest) {
           send(controller, { type: 'content', content })
         }
 
-        if (!transformedContent.trim()) throw new Error('The model returned an empty transformation')
+        if (!transformedContent.trim()) {
+          const fallbackContent = await createChatCompletion({
+            messages: [
+              { role: 'system', content: prompts.main },
+              { role: 'user', content: transformPrompt },
+            ],
+            maxTokens,
+          })
+          if (!fallbackContent.trim()) throw new Error('The model returned an empty transformation')
+          transformedContent = fallbackContent
+          send(controller, { type: 'status', phase: 'shaping' })
+          send(controller, { type: 'content', content: fallbackContent })
+        }
         send(controller, { type: 'status', phase: 'finalizing' })
 
         const originalLength = original_content.length
@@ -202,7 +231,7 @@ export async function POST(request: NextRequest) {
         resolvePostJob(null)
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
           console.error('Streaming transformation failed:', error)
-          send(controller, { type: 'error', error: 'The transformation could not be completed. Please try again.' })
+          send(controller, { type: 'error', error: getPublicTransformError(error) })
         }
       } finally {
         controller.close()

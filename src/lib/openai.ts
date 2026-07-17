@@ -58,16 +58,11 @@ export async function createStreamingChatCompletion({
   }
 }) {
   try {
-    console.log('Azure OpenAI Configuration:')
-    console.log('- Endpoint:', process.env.AZURE_OPENAI_ENDPOINT)
-    console.log('- Deployment:', process.env.AZURE_OPENAI_DEPLOYMENT_NAME)
-    console.log('- API Version:', process.env.AZURE_OPENAI_API_VERSION)
-    console.log('- Endpoint mode:', /\/openai\/v1\/?$/i.test(process.env.AZURE_OPENAI_ENDPOINT || '') ? 'Azure OpenAI v1' : 'Azure deployment API')
-    
     const requestBody: Record<string, unknown> = {
       model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
       messages,
       max_completion_tokens: maxTokens,
+      reasoning_effort: 'none',
       temperature: 1,
       top_p: 1,
       stream: true,
@@ -96,7 +91,7 @@ export async function createStreamingChatCompletion({
     return stream
   } catch (error) {
     console.error('OpenAI Streaming API Error:', error)
-    throw new Error('Failed to generate streaming AI response')
+    throw error instanceof Error ? error : new Error('Failed to generate streaming AI response')
   }
 }
 
@@ -113,6 +108,8 @@ export async function createChatCompletion({
       model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME!,
       messages,
       max_completion_tokens: maxTokens,
+      // @ts-expect-error - this Azure v1 deployment supports `none`; the installed SDK union has not caught up.
+      reasoning_effort: 'none',
       temperature: 1,
       top_p: 1,
     })
@@ -120,6 +117,6 @@ export async function createChatCompletion({
     return completion.choices[0]?.message?.content || ''
   } catch (error) {
     console.error('OpenAI API Error:', error)
-    throw new Error('Failed to generate AI response')
+    throw error instanceof Error ? error : new Error('Failed to generate AI response')
   }
 }
