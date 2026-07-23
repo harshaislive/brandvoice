@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { getRecentDraftLabel } from '@/lib/transformation-display'
 import { TransformResultContent } from './result-content'
 
 export type TransformPhase = 'idle' | 'reading' | 'shaping' | 'finalizing' | 'complete' | 'cancelled' | 'error'
@@ -71,17 +72,6 @@ type DesktopTransformWorkspaceProps = {
   onCopy: () => void
   onReplaceDraft: () => void
   onReset: () => void
-}
-
-function formatRelativeDate(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'Recently'
-  const difference = Date.now() - date.getTime()
-  const hours = Math.max(0, Math.floor(difference / 3_600_000))
-  if (hours < 1) return 'Edited just now'
-  if (hours < 24) return `Edited ${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `Edited ${days}d ago`
 }
 
 function ResultSkeleton() {
@@ -173,10 +163,6 @@ export function DesktopTransformWorkspace({
           <p className="mt-1.5 text-[11px] tabular-nums text-[#aebcaf]">{additionalContext.length} / 500</p>
         </div>
 
-        <Button type="button" onClick={isTransforming ? onCancel : onTransform} disabled={!isTransforming && !canTransform} className="mt-5 h-12 w-full gap-2 rounded-md bg-[#dbe5ce] text-[14px] font-semibold text-[#183525] shadow-[0_8px_24px_rgb(7_25_14_/_0.18)] hover:bg-[#edf2e7] disabled:bg-[#607364] disabled:text-[#aebcaf]">
-          {isTransforming ? <><Square className="h-3.5 w-3.5 fill-current" /> Stop transformation</> : <><Sparkles className="h-4 w-4" strokeWidth={1.7} /> Transform draft</>}
-        </Button>
-
         <div className="mt-auto min-h-0 pt-7">
           <div className="flex items-center justify-between border-b border-[#526858] pb-2.5">
             <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#b9cbaa]">Recent drafts</p>
@@ -184,11 +170,10 @@ export function DesktopTransformWorkspace({
           </div>
           <div className="divide-y divide-[#425b4a]">
             {recent.slice(0, 2).map((item) => (
-              <Link key={item.id} href={item.id.startsWith('preview-') ? '/history' : `/history?selected=${item.id}`} className="group flex items-start gap-2.5 py-3.5">
-                <FileText className="mt-0.5 h-4 w-4 shrink-0 text-[#aebcaf]" strokeWidth={1.5} />
-                <span className="min-w-0 flex-1">
-                  <span className="line-clamp-2 block text-[12px] font-medium leading-4 text-[#edf2eb] group-hover:text-white">{item.original_content || 'Untitled transformation'}</span>
-                  <span className="mt-1 block text-[10px] text-[#aebcaf]">{formatRelativeDate(item.created_at)}</span>
+              <Link key={item.id} href={item.id.startsWith('preview-') ? '/history' : `/history?selected=${item.id}`} title={item.original_content || 'Untitled transformation'} className="group flex min-h-11 items-center gap-2.5 py-2.5">
+                <FileText className="h-4 w-4 shrink-0 text-[#aebcaf]" strokeWidth={1.5} />
+                <span className="min-w-0 flex-1 truncate text-[12px] font-medium leading-5 text-[#edf2eb] group-hover:text-white">
+                  {getRecentDraftLabel(item.original_content)}
                 </span>
               </Link>
             ))}
@@ -208,9 +193,14 @@ export function DesktopTransformWorkspace({
         <div className="relative min-h-0 flex-1">
           <Textarea value={originalContent} onChange={(event) => onOriginalContentChange(event.target.value)} placeholder="Paste or write your draft here…" maxLength={10000} className="h-full min-h-full w-full resize-none rounded-none border-0 bg-transparent px-9 py-8 font-serif text-[17px] leading-[2.15] text-[#39372f] shadow-none placeholder:font-serif placeholder:text-[#9a9388] focus-visible:ring-0" />
         </div>
-        <footer className="flex h-11 shrink-0 items-center justify-between border-t border-[#e4ded4] px-8 text-[10px] text-[#8b857c]">
+        <footer className="flex h-14 shrink-0 items-center justify-between border-t border-[#e4ded4] px-8 text-[10px] text-[#8b857c]">
           <span>{originalContent.length.toLocaleString()} / 10,000 characters</span>
-          <button type="button" onClick={onReset} className="flex items-center gap-1.5 hover:text-[#314536]"><RotateCcw className="h-3.5 w-3.5" /> Clear draft</button>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={onReset} className="flex min-h-9 items-center gap-1.5 px-1 hover:text-[#314536]"><RotateCcw className="h-3.5 w-3.5" /> Clear draft</button>
+            <Button type="button" onClick={isTransforming ? onCancel : onTransform} disabled={!isTransforming && !canTransform} size="sm" className="h-9 gap-2 rounded-md bg-[#315d3c] px-4 text-[12px] font-semibold text-[#faf8f2] shadow-none hover:bg-[#294f33] disabled:bg-[#c8cec4] disabled:text-[#f8f5ef]">
+              {isTransforming ? <><Square className="h-3 w-3 fill-current" /> Stop</> : <><Sparkles className="h-3.5 w-3.5" strokeWidth={1.7} /> Transform draft</>}
+            </Button>
+          </div>
         </footer>
       </section>
 

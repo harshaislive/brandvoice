@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/auth-context'
+import { copyRichTransformResult, getRecentDraftLabel } from '@/lib/transformation-display'
 import { toast } from 'sonner'
 
 type TransformResult = {
@@ -111,15 +112,6 @@ function waitForPreview(ms: number, signal: AbortSignal) {
       reject(new DOMException('Transformation cancelled', 'AbortError'))
     }, { once: true })
   })
-}
-
-function formatRecentDate(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return { date: '', time: '' }
-  return {
-    date: new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(date),
-    time: new Intl.DateTimeFormat('en', { hour: 'numeric', minute: '2-digit' }).format(date),
-  }
 }
 
 export default function TransformPage() {
@@ -357,8 +349,12 @@ export default function TransformPage() {
   const copyToClipboard = async () => {
     const content = result?.transformed_content || streamingContent
     if (!content) return
-    await navigator.clipboard.writeText(content)
-    toast.success('Copied to clipboard', { description: 'The Beforest version is ready to paste.' })
+    try {
+      await copyRichTransformResult(content)
+      toast.success('Copied with formatting', { description: 'The Beforest version is ready to paste.' })
+    } catch {
+      toast.error('Could not copy the result', { description: 'Please select the text and copy it manually.' })
+    }
   }
 
   const replaceDraft = () => {
@@ -500,15 +496,12 @@ export default function TransformPage() {
             <h2 id="recent-work-heading" className="text-[11px] font-medium uppercase tracking-[0.24em] text-[#496a50]">Recent work</h2>
             <Link href="/history" className="text-xs text-[#6f6a61] hover:text-[#314536]">View all history</Link>
           </div>
-          {recentRows.length ? recentRows.map((item) => {
-            const formatted = formatRecentDate(item.created_at)
-            return (
-              <Link key={item.id} href={item.id.startsWith('preview-') ? '/history' : `/history?selected=${item.id}`} className="grid min-h-[52px] grid-cols-[1fr_auto] items-center gap-4 border-b border-[#ddd6ca] px-2 py-3 text-sm transition-colors hover:bg-[#f8f4ec] md:grid-cols-[1.5fr_0.55fr_0.45fr_0.7fr_0.55fr_auto]">
-                <span className="flex min-w-0 items-center gap-3 font-medium"><FileText className="h-4 w-4 shrink-0 text-[#777168]" strokeWidth={1.5} /><span className="truncate">{item.original_content || 'Untitled transformation'}</span></span>
-                <span className="hidden text-[#777168] md:block">{formatted.date}</span><span className="hidden text-[#777168] md:block">{formatted.time}</span><span className="hidden truncate text-[#777168] md:block">{item.content_type}</span><span className="hidden truncate text-[#777168] md:block">{item.target_audience}</span><ChevronRight className="h-4 w-4 text-[#817b71]" strokeWidth={1.5} />
-              </Link>
-            )
-          }) : <div className="border-b border-[#ddd6ca] py-7 text-sm text-[#817b71]">Your recent transformations will appear here.</div>}
+          {recentRows.length ? recentRows.map((item) => (
+            <Link key={item.id} href={item.id.startsWith('preview-') ? '/history' : `/history?selected=${item.id}`} title={item.original_content || 'Untitled transformation'} className="grid min-h-[52px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-[#ddd6ca] px-2 py-3 text-sm transition-colors hover:bg-[#f8f4ec]">
+              <span className="flex min-w-0 items-center gap-3 font-medium"><FileText className="h-4 w-4 shrink-0 text-[#777168]" strokeWidth={1.5} /><span className="truncate">{getRecentDraftLabel(item.original_content)}</span></span>
+              <ChevronRight className="h-4 w-4 text-[#817b71]" strokeWidth={1.5} />
+            </Link>
+          )) : <div className="border-b border-[#ddd6ca] py-7 text-sm text-[#817b71]">Your recent transformations will appear here.</div>}
         </section>
       </main>
     </div>
